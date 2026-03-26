@@ -1,0 +1,192 @@
+{
+  "header": {
+    "login": "Log in"
+  },
+  "login": {
+    "title": "Hi, Welcome",
+    "content": "Dream it. Swipe it. Feel it.",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "wrongPassword": "Wrong password",
+    "forgotPassword": "Forgot password?",
+    "login": "Login",
+    "agree": "By signing up, you agree to our ",
+    "terms": "Terms",
+    "or": "Or log in with",
+    "dontHaveAccount": "Don't have an account? ",
+    "signUp": "Sign up",
+    "wrongEmailOrPassword": "Wrong email or password"
+  },
+  "disclaimer": {
+    "content": "This website contains age-restricted materials including nudity and explicit depictions of sexual activity. By entering, you affirm that you are at least 18 years of age or the age of majority in the jurisdiction you are accessing the website from and you consent to viewing sexually explicit content.",
+    "terms": "Terms of Service",
+    "exit": "This website is only intended for users over the age of 18.",
+    "under": "Under 18",
+    "over": "I am 18+"
+  },
+  "signUp": {
+    "title": "Let’s get started",
+    "content": "Your journey starts from here.",
+    "email": "Email *",
+    "emailPlaceholder": "Enter your email",
+    "emailInvalid": "Invalid email",
+    "password": "Create password *",
+    "passwordPlaceholder": "Enter your password",
+    "passwordTooShort": "At least 8 characters",
+    "confirmPassword": "Confirm Password *",
+    "confirmPasswordPlaceholder": "Enter your password",
+    "wrongPassword": "Doesn't match",
+    "create": "Create account",
+    "agree": "By signing up, you agree to our ",
+    "terms": "Terms",
+    "or": "Or sign up with",
+    "alreadyHaveAccount": "Already have an account? ",
+    "login": "Log in",
+    "errorSignup": "Failed to create account, please try again",
+    "snackbarCheckInbox": "Check your inbox for the verification code",
+    "snackbarCodeIncorrect": "Verification code incorrect, try again"
+  },
+  "signUpSelection": {
+    "title": "What are you into?",
+    "content": "Pick some interests you enjoy",
+    "start": "Start",
+    "error": "Failed to save preferences, please try again"
+  },
+  "forgotPassword": {
+    "verifyEmail": "Forgot Password",
+    "verifyCode": "Verification code",
+    "resetPassword": "Reset password",
+    "verifyEmailContent": "Verify your email to reset your password.",
+    "verifyCodeContent": "Enter the code you receive in the email.",
+    "resetPasswordContent": "Set your new password.",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "emailInvalid": "Invalid email",
+    "sendCode": "Send code",
+    "backTo": "Back to ",
+    "login": "Log in",
+    "verify": "Verify",
+    "resendCodeIn": "Resend code in",
+    "didNotReceiveCode": "Didn’t receive a code? ",
+    "resend": "Resend",
+    "password": "Reset password *",
+    "passwordPlaceholder": "Enter your password",
+    "passwordTooShort": "At least 8 characters",
+    "confirmPassword": "Confirmt password *",
+    "confirmPasswordPlaceholder": "Enter your password",
+    "wrongPassword": "Doesn't match",
+    "confirm": "Confirm",
+    "snackbarCheckInbox": "Check your inbox for the verification code",
+    "snackbarCodeIncorrect": "Verification code incorrect, try again",
+    "snackbarPasswordResetSuccess": "Password reset successfully"
+  },
+  "verifyCodeFragment": {
+    "verifyCode": "Verification code",
+    "verifyCodeContent": "Enter the code you receive in the email.",
+    "verify": "Verify",
+    "resendCodeIn": "Resend code in",
+    "didNotReceiveCode": "Didn’t receive a code? ",
+    "resend": "Resend"
+  },
+  "account": {
+    "title": "Account",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "twitter": "Twitter ID",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "logout": "Log out"
+  },
+  "verification": {
+    "title": "Verification",
+    "content": "Enter your password to edit your account.",
+    "passwordPlaceholder": "Enter your password",
+    "wrongPassword": "Wrong password",
+    "forgotPassword": "Forgot password?",
+    "verify": "Verify",
+    "cancel": "Cancel"
+  },
+  "deleteAccount": {
+    "title": "Delete your account?",
+    "content": "This action can’t be undone. Are you sure you want to continue?",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "deleteAccountOverlay": {
+    "successfullyDeletedAccount": "Successfully deleted account",
+    "somethingWentWrongTryAgain": "Something went wrong, try again"
+  },
+  "sideMenu": {
+    "explore": "Explore",
+    "myCollection": "My Collection",
+    "account": "Account",
+    "language": "Language",
+    "login": "Log in"
+  },
+  "videoInfoCard": {
+    "release": "Release",
+    "actress": "Actress",
+    "maker": "Maker",
+    "code": "Code",
+    "copiedToClipboard": "Copied to clipboard",
+    "copyFailed": "Could not copy — long-press the code to copy manually"
+  },
+  "filter": {
+    "title": "Filter by genre",
+    "loading": "Loading...",
+    "filter": "Filter ",
+    "edit": "Edit",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "clear": "Clear all"
+  },
+  "collection": {
+    "title": "My Collection",
+    "select": "Edit",
+    "selectAll": "Select all",
+    "unsave": "Unsave",
+    "cancel": "Cancel",
+    "unsaveSuccess": "Unsaved successfully",
+    "unsaveError": "Failed to unsave, please try again",
+    "more": "More >",
+    "noCollectionTitle": "Your collection is empty.",
+    "noCollectionDescription": "Start swiping movies",
+    "backToExplore": "Back to Explore"
+  },
+  "unsaveOverlay": {
+    "title": "Unsave item?",
+    "content": "Unsaving items will remove them from your collection.",
+    "cancel": "Cancel",
+    "unsave": "Unsave"
+  },
+  "unlockFeatureOverlay": {
+    "title": "Unlock more features?",
+    "content": "Log in to unlock your exclusive infinite dreamy experience.",
+    "login": "Log in",
+    "skip": "Skip"
+  },
+  "editAccountOverlay": {
+    "title": "Edit account",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "deleteAccount": "Delete account",
+    "cancel": "Cancel",
+    "save": "Save",
+    "passwordChangedSuccessfully": "Password changed successfully",
+    "somethingWentWrongTryAgain": "Something went wrong, try again"
+  },
+  "videoSwiper": {
+    "noMoviesTitle": "No movies found",
+    "noMoviesContent": "We couldn’t find what you were looking for.",
+    "backToExplore": "Back to Explore"
+  },
+  "twitterLogin": {
+    "error": "Failed to login, please try again"
+  }
+}

@@ -1,0 +1,66 @@
+@import 'src/styles/config';
+
+.header {
+  @include font-space-grotesk;
+  @include row;
+  justify-content: space-between;
+  position: fixed;
+  align-items: center;
+  top: 0;
+  width: 100vw;
+  height: 6rem;
+  box-sizing: border-box;
+  padding: 0 2rem;
+  box-shadow: $box-shadow-container-primary;
+
+  .logo {
+    @include font-28;
+    color: $color-primary;
+    text-transform: uppercase;
+    width: 15rem;
+    text-shadow: $text-shadow-primary;
+  }
+
+  .menu-list {
+    @include row;
+    gap: 3rem;
+    align-items: center;
+
+    .menu-item {
+      @include font-16;
+      color: $color-primary;
+      text-transform: uppercase;
+
+      &.active {
+        color: $color-secondary;
+        transform: scale(1.1);
+        transition: transform 0.2s;
+
+        &::after {
+          content: '';
+          display: block;
+          width: 100%;
+          height: 2px;
+          background: $color-secondary;
+        }
+      }
+    }
+  }
+}
+
+.window-small {
+  .header {
+    justify-content: initial;
+    gap: 2rem;
+
+    .logo {
+      @include font-24;
+      width: 14rem;
+      margin-right: auto;
+    }
+
+    .menu-list {
+      display: none;
+    }
+  }
+}

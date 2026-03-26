@@ -1,0 +1,58 @@
+@import 'src/styles/config';
+
+.connect-wallet-module {
+  @include font-space-grotesk;
+  position: relative;
+  width: 15rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  .connect-button {
+    @include base-button;
+    padding: 0 1rem;
+    background: $color-secondary;
+    box-sizing: border-box;
+
+    &:hover {
+      background: $color-black-80-percent;
+    }
+  }
+
+  .logged-in-container {
+    position: relative;
+  }
+
+  .dropdown {
+    @include center-item;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.8rem);
+    min-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid $color-white-20-percent;
+    box-shadow: $box-shadow-container;
+    background: $color-secondary;
+  }
+
+  .dropdown-item {
+    @include center-item;
+    height: 4rem;
+    width: 100%;
+    text-transform: uppercase;
+
+    &:hover {
+      background: $color-black-80-percent;
+    }
+  }
+}
+
+.window-small {
+  .connect-wallet-module {
+    @include font-16-bold;
+    width: fit-content;
+
+    .connect-button {
+      @include base-button;
+    }
+  }
+}

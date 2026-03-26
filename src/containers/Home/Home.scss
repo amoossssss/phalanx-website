@@ -1,0 +1,10 @@
+@import 'src/styles/config';
+
+.home {
+  @include column;
+}
+
+.window-small {
+  .home {
+  }
+}

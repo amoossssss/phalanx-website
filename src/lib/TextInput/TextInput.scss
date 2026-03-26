@@ -1,0 +1,73 @@
+@import 'src/styles/config';
+
+.text-input {
+  @include font-16;
+  @include column;
+  gap: 0.4rem;
+  margin-top: 2.4rem;
+
+  .input-title-block {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+
+    .input-title {
+      line-height: 2.4rem;
+    }
+
+    .error-block {
+      @include font-14;
+      @include row;
+      align-items: center;
+      gap: 0.4rem;
+      color: $color-red01;
+    }
+  }
+
+  .input-block {
+    position: relative;
+
+    .input-element {
+      @include font-16;
+      border: 1px solid $color-white-50-percent;
+      //background: $color-black01;
+      background: transparent;
+      border-radius: $border-radius-default;
+      padding: 1.4rem 1.6rem;
+      height: 4.8rem;
+      box-sizing: border-box;
+      min-width: 31.3rem;
+      color: $color-white01;
+
+      &::placeholder {
+        color: $color-white-20-percent;
+      }
+
+      &.error {
+        border-color: $color-red01;
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        pointer-events: none;
+        background: $color-black02;
+        border-color: $color-black02;
+      }
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      z-index: 1;
+      width: 2.4rem;
+      height: 2.4rem;
+      object-fit: contain;
+    }
+  }
+}
+
+.window-small {
+  .text-input {
+  }
+}

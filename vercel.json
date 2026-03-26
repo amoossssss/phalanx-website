@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api-proxy/:path*",
+      "destination": "TODO"
+    },
+    {
+      "source": "/((?!api-proxy/|_next/|static/|favicon.ico|/images|/icons|terms_of_services.pdf|/locales).*)",
+      "destination": "/"
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+@function color-with-opacity($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+$color-black: #000000;
+$color-white: #ffffff;
+
+$color-black01: #0b0a0d;
+$color-black02: #2b2933;
+$color-black-80-percent: color-with-opacity($color-black01, 0.8);
+$color-black-50-percent: color-with-opacity($color-black01, 0.5);
+
+$color-white01: #f9f9f9;
+$color-white-50-percent: color-with-opacity($color-white01, 0.5);
+$color-white-20-percent: color-with-opacity($color-white01, 0.2);
+$color-white-30-percent: color-with-opacity($color-white01, 0.3);
+$color-white-70-percent: color-with-opacity($color-white01, 0.7);
+
+$color-blue01: #3694ff;
+$color-red01: #f23333;
+$color-pink01: #dd3a56;
+$color-orange01: #f77808;
+
+$color-primary: #8ff5ff;
+$color-secondary: #ff51fa;
+$color-tertiary: #8eff71;
+$color-neutral: #1a1b26;
+
+$border-radius-default: 2rem;
+
+$box-shadow-default: 0.5rem 0.5rem 1rem 0 rgba(91, 91, 91, 0.5);
+$box-shadow-container: 0 2px 4px rgba(0, 0, 0, 0.15);
+$box-shadow-reverse-container: 0 -2px -4px rgba(0, 0, 0, 0.15);
+$box-shadow-button: 0 2px 4px rgba(0, 0, 0, 0.15);
+$box-shadow-main-menu: 10 0 25px 3px rgba(50, 50, 50, 0.6);
+
+$box-shadow-container-primary: 0 2px 20px rgba(143, 245, 255, 0.5);
+
+$text-shadow-default: 2px 2px 6px rgba(0, 0, 0, 0.25);
+$text-shadow-primary: 0px 3px 1px rgba(143, 245, 255, 0.5);
+
+$font-weight-normal: 400;
+$font-weight-bold: 700;
+
+$content-max-width: 130rem;
+
+$font-family-sans: 'Inter', 'Noto Sans', sans-serif;
+$font-family-display: 'Space Grotesk', 'Montserrat', sans-serif;
+
+@mixin font-noto-sans {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+@mixin font-inter {
+  font-family: $font-family-sans;
+}
+
+@mixin font-space-grotesk {
+  font-family: $font-family-display;
+}
+
+@mixin font-regular {
+  font-weight: $font-weight-normal;
+  font-style: normal;
+}
+
+@mixin font-bold {
+  font-weight: $font-weight-bold;
+  font-style: normal;
+}
+
+@mixin font-28 {
+  @include font-bold;
+  font-size: 2.8rem;
+}
+
+@mixin font-24 {
+  @include font-bold;
+  font-size: 2.4rem;
+}
+
+@mixin font-20 {
+  @include font-bold;
+  font-size: 2rem;
+}
+
+@mixin font-16 {
+  @include font-regular;
+  font-size: 1.6rem;
+}
+
+@mixin font-16-bold {
+  @include font-bold;
+  font-size: 1.6rem;
+}
+
+@mixin font-14 {
+  @include font-regular;
+  font-size: 1.4rem;
+}
+
+@mixin font-12 {
+  @include font-regular;
+  font-size: 1.2rem;
+}
+
+@mixin row {
+  display: flex;
+  flex-direction: row;
+}
+
+@mixin column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin center-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin outline-none() {
+  &:focus {
+    outline: none;
+  }
+}
+
+@mixin disabled() {
+  pointer-events: none;
+  touch-action: none;
+  cursor: pointer;
+}
+
+@mixin uppercase() {
+  text-transform: uppercase;
+}
+
+@mixin base-button() {
+  @include center-item;
+  @include font-16-bold;
+  @include outline-none;
+  text-align: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: $color-white01;
+  height: 4rem;
+}
+
+@mixin checkbox() {
+  @include center-item;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+  box-sizing: border-box;
+  border: 2px solid $color-white01;
+}
+
+@mixin no-select() {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+  user-drag: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+}
+
+@mixin scrollbar() {
+  &::-webkit-scrollbar {
+    -webkit-appearance: none;
+    height: 1rem;
+    width: 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 0.5rem;
+    -webkit-box-shadow: 0 0 0.1rem rgba(255, 255, 255, 0.5);
+    border: solid 0.3rem transparent;
+    box-shadow: inset 0 0 1rem 1rem rgba(255, 255, 255, 0.5);
+  }
+}
+
+@mixin fade-in-animation() {
+  animation: fadein 0.25s;
+
+  @keyframes fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@mixin box-shadow-normal($color) {
+  box-shadow: 0 0 8px 0 $color;
+}
+
+@mixin box-shadow-large($color) {
+  box-shadow: 0 0 16px 0 $color;
+}
+
+@keyframes floating {
+  0% {
+    transform: translate(0, 0px);
+  }
+  50% {
+    transform: translate(0, -20px);
+  }
+  100% {
+    transform: translate(0, 0px);
+  }
+}
+
+@mixin hide-scrollbar() {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &::-webkit-scrollbar {
+    width: 1px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+}
+
+@mixin dialog-container() {
+  @include center-item;
+  width: 100vw;
+  height: 100svh;
+  background: $color-white-50-percent;
+  backdrop-filter: blur(4px);
+  padding: 0;
+  margin: 0;
+  top: 0;
+  z-index: 10000;
+  overflow: hidden;
+  position: fixed;
+}
+
+@keyframes swipe-opacity {
+  0% {
+    opacity: 0.4;
+    background: $color-white-50-percent;
+  }
+  50% {
+    opacity: 1;
+    background: $color-white-30-percent;
+  }
+  100% {
+    opacity: 0.4;
+    background: $color-white-50-percent;
+  }
+}

@@ -1,0 +1,88 @@
+@import 'src/styles/config';
+
+html {
+  @include font-inter;
+  @include hide-scrollbar;
+  font-size: 10px;
+  font-weight: $font-weight-normal;
+  background: $color-neutral;
+  color: $color-white01;
+}
+
+body {
+  margin: 0;
+  overflow: auto !important;
+  padding: 0 !important;
+  height: 100svh;
+}
+
+main {
+  @include column;
+  position: relative;
+  min-height: 100svh;
+  min-width: 36rem;
+}
+
+.app-container {
+  @include font-14;
+  display: flex;
+  justify-content: center;
+  min-height: 100svh;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+img {
+  @include no-select;
+  pointer-events: none;
+  touch-action: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type='number'] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.title-block {
+  @include column;
+  gap: 1.2rem;
+
+  .title {
+    @include font-28;
+    line-height: 4rem;
+  }
+
+  .sub-title {
+    @include font-16;
+    color: $color-white-50-percent;
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+.notistack-SnackbarContainer {
+  width: fit-content !important;
+}
+
+.notistack-MuiContent {
+  @include font-14;
+  font-size: 1.2rem !important;
+}
+
+.window-small {
+  .app-container {
+    overflow-x: hidden;
+  }
+}
