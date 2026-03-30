@@ -37,11 +37,9 @@
       justify-content: space-between;
 
       .logo-link {
-        @include font-space-grotesk;
         @include font-28;
         color: $color-primary;
         text-decoration: none;
-        text-transform: uppercase;
       }
 
       .logo {
@@ -63,7 +61,6 @@
         @include font-20;
         line-height: 3.2rem;
         color: $color-primary;
-        text-transform: uppercase;
 
         &.active {
           color: $color-secondary;

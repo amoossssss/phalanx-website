@@ -1,0 +1,82 @@
+@import 'src/styles/config';
+
+.pagination {
+  @include font-14;
+  @include row;
+  @include center-item;
+  margin-top: 2rem;
+  width: 100%;
+
+  .nav {
+    @include row;
+    @include center-item;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+
+    .edge {
+      @include base-button;
+      min-width: 10rem;
+      height: 4rem;
+      padding: 0 1rem;
+      background: $color-primary-dark;
+      color: $color-primary;
+      border: 2px solid $color-primary;
+
+      &:not(.disabled):hover {
+        background: $color-neutral-light;
+      }
+
+      &.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+
+    .pages {
+      @include row;
+      @include center-item;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+
+      .gap {
+        color: $color-white-50-percent;
+        padding: 0 0.4rem;
+        user-select: none;
+      }
+
+      .page {
+        @include base-button;
+        min-width: 4rem;
+        height: 4rem;
+        padding: 0 0.8rem;
+        background: $color-black-50-percent;
+        color: $color-white01;
+        border: 2px solid $color-white-20-percent;
+
+        &:not(.disabled):not(.active):hover {
+          background: $color-black-80-percent;
+          border-color: $color-primary-dark;
+        }
+
+        &.active {
+          background: $color-primary-dark;
+          color: $color-primary;
+          border-color: $color-primary;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+}
+
+.window-small {
+  .pagination {
+    .nav {
+      gap: 0.8rem;
+
+      .pages {
+        gap: 0.4rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+@import 'src/styles/config';
+
+.member-list {
+  @include column;
+  gap: 1.2rem;
+  width: 100%;
+
+  .member-table {
+    @include column;
+    border: 1px solid $color-primary-dark;
+    overflow: hidden;
+    background: $color-neutral;
+
+    .member-row {
+      @include row;
+      align-items: center;
+      gap: 1.2rem;
+      padding: 1.2rem 1.6rem;
+      border-bottom: 1px solid $color-white-20-percent;
+      box-sizing: border-box;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.table-header {
+        @include font-12;
+        @include uppercase;
+        color: $color-white-50-percent;
+        background: $color-neutral-light;
+        border-bottom: 1px solid $color-primary-dark;
+      }
+
+      .col {
+        @include font-14;
+        min-width: 0;
+        color: $color-white01;
+      }
+
+      .col-member {
+        flex: 1.4;
+        @include font-space-grotesk;
+        @include font-16-bold;
+        color: $color-primary;
+        word-break: break-word;
+      }
+
+      .col-role {
+        flex: 0.8;
+
+        .role-badge {
+          @include font-12;
+          display: inline-block;
+          padding: 0.2rem 0.6rem;
+          border: 1px solid $color-white-20-percent;
+        }
+
+        .role-captain {
+          color: $color-tertiary;
+          border-color: $color-tertiary-dark;
+        }
+
+        .role-member {
+          color: $color-white-70-percent;
+        }
+      }
+
+      .col-pnl {
+        flex: 0.7;
+        color: $color-primary;
+        @include font-16-bold;
+      }
+
+      .col-roi {
+        flex: 0.7;
+        color: $color-tertiary;
+        @include font-16-bold;
+      }
+
+      .col-action {
+        flex: 0 0 9rem;
+        min-width: 8rem;
+        display: flex;
+        justify-content: flex-end;
+
+        .action-placeholder {
+          display: inline-block;
+          min-width: 1px;
+        }
+
+        .kick-button {
+          @include font-12;
+          background: $color-secondary;
+          color: $color-white01;
+          padding: 0.4rem 1rem;
+          min-height: 3.2rem;
+          box-sizing: border-box;
+
+          &:hover:not(.disabled) {
+            @include mini-scale(1.02);
+          }
+        }
+      }
+    }
+  }
+}
+
+.window-small {
+  .member-list {
+  }
+}

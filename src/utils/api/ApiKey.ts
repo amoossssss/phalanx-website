@@ -1,10 +1,15 @@
 enum ApiKey {
-    auth = 'auth',
-    squad = 'squad',
-    me = 'me',
-    nonce = 'nonce',
-    verify = 'verify',
-    logout = 'logout',
+  auth = 'auth',
+  me = 'me',
+  nonce = 'nonce',
+  verify = 'verify',
+  logout = 'logout',
+  squads = 'squads',
+  my = 'my',
+  list = 'list',
+  page = 'page',
+  wallet = 'wallet',
+  alias = 'alias',
 }
 
 export default ApiKey;

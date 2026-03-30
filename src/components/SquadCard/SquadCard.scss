@@ -1,0 +1,104 @@
+@import 'src/styles/config';
+
+.squad-card {
+  @include column;
+  gap: 2rem;
+  width: 30rem;
+  padding: 2.4rem;
+  background: $color-neutral-light;
+
+  .avatar-container {
+    @include row;
+    justify-content: space-between;
+
+    .avatar {
+      width: 8rem;
+      height: 8rem;
+      object-fit: cover;
+      border: 2px solid $color-primary-dark;
+    }
+
+    .leader {
+      @include column;
+      @include font-12;
+      gap: 0.4rem;
+      align-items: flex-end;
+
+      .leader-name {
+        @include font-16-bold;
+        color: $color-primary;
+      }
+    }
+  }
+
+  .name-container {
+    @include column;
+    gap: 0.4rem;
+
+    .squad-name {
+      @include font-24;
+    }
+
+    .squad-member-count {
+      @include font-12;
+      color: $color-tertiary;
+    }
+  }
+
+  .squad-earnings {
+    @include row;
+    gap: 5rem;
+    width: 100%;
+    background: $color-neutral;
+    padding: 1.6rem;
+    box-sizing: border-box;
+
+    .earnings-item {
+      @include column;
+      @include font-12;
+      gap: 0.4rem;
+      color: $color-white-50-percent;
+      flex: 1;
+
+      .earnings-number {
+        @include font-24;
+      }
+
+      &.roi {
+        .earnings-number {
+          color: $color-tertiary;
+        }
+      }
+
+      &.pnl {
+        .earnings-number {
+          color: $color-primary;
+        }
+      }
+    }
+  }
+
+  .join-button {
+    @include base-button;
+    position: relative;
+    background: $color-tertiary;
+    color: $color-neutral;
+    box-sizing: border-box;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+
+    &.full {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    &:hover {
+      @include mini-scale(1.02);
+      box-shadow: 4px 4px 4px $color-tertiary-dark;
+    }
+  }
+}
+
+.window-small {
+  .squad-card {
+  }
+}

@@ -1,0 +1,52 @@
+@import 'src/styles/config';
+
+.update-alias-dialog {
+  @include dialog-container;
+
+  .dialog-content {
+    @include column;
+    position: relative;
+    padding: 2rem;
+    background: $color-neutral;
+    border: 2px solid $color-primary-dark;
+    width: 40rem;
+    box-sizing: border-box;
+
+    .dialog-title {
+      @include font-28;
+      color: $color-primary;
+    }
+
+    .update-button {
+      @include base-button;
+      position: relative;
+      background: $color-tertiary;
+      color: $color-neutral;
+      box-sizing: border-box;
+      box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+      margin-top: 4rem;
+
+      &:hover {
+        @include mini-scale(1.02);
+        box-shadow: 4px 4px 4px $color-tertiary-dark;
+      }
+    }
+
+    .close-button {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+    }
+  }
+}
+
+.window-small {
+  .update-alias-dialog {
+    .create-squad-dialog {
+      .dialog-content {
+        width: 100svw;
+        max-width: 40rem;
+      }
+    }
+  }
+}

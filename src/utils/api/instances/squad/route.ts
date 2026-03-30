@@ -1,4 +1,27 @@
 import ApiKey from '@/utils/api/ApiKey';
 import PathHelper from '@/utils/helpers/PathHelper';
 
-export default {};
+const createSquad = PathHelper.createPath([ApiKey.squads]);
+
+const editSquad = (id: string) => PathHelper.createPath([ApiKey.squads, id]);
+
+const getSquadById = (id: string) => PathHelper.createPath([ApiKey.squads, id]);
+
+const getMySquad = PathHelper.createPath([ApiKey.squads, ApiKey.my]);
+
+const getSquadByPage = (page: number | string) => {
+  const path = PathHelper.createPath([ApiKey.squads, ApiKey.list]);
+  return `${path}?${ApiKey.page}=${page}`;
+};
+
+const kickMember = (squadId: string, targetWallet: string) =>
+  PathHelper.createPath([ApiKey.squads, squadId, 'members', targetWallet]);
+
+export default {
+  createSquad,
+  editSquad,
+  getSquadById,
+  getMySquad,
+  getSquadByPage,
+  kickMember,
+};

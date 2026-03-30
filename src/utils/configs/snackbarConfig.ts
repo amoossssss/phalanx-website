@@ -5,6 +5,10 @@ const snackbarConfig: OptionsWithExtraProps<VariantType> = {
   autoHideDuration: 4000,
   preventDuplicate: true,
   variant: 'success',
+  style: {
+    backgroundColor: '#8eff71',
+    color: '#1a1b26',
+  },
 };
 
 export default snackbarConfig;

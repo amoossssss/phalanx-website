@@ -13,6 +13,7 @@
 
     .input-title {
       line-height: 2.4rem;
+      color: $color-primary;
     }
 
     .error-block {
@@ -28,16 +29,18 @@
     position: relative;
 
     .input-element {
+      @include font-space-grotesk;
       @include font-16;
-      border: 1px solid $color-white-50-percent;
-      //background: $color-black01;
+      @include uppercase;
+      border: 1px solid $color-primary-dark;
       background: transparent;
-      border-radius: $border-radius-default;
       padding: 1.4rem 1.6rem;
       height: 4.8rem;
       box-sizing: border-box;
       min-width: 31.3rem;
+      width: 100%;
       color: $color-white01;
+      outline: none;
 
       &::placeholder {
         color: $color-white-20-percent;

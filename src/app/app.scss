@@ -1,7 +1,6 @@
 @import 'src/styles/config';
 
 html {
-  @include font-inter;
   @include hide-scrollbar;
   font-size: 10px;
   font-weight: $font-weight-normal;
@@ -10,6 +9,8 @@ html {
 }
 
 body {
+  @include font-space-grotesk;
+  @include uppercase;
   margin: 0;
   overflow: auto !important;
   padding: 0 !important;
@@ -25,11 +26,10 @@ main {
 
 .app-container {
   @include font-14;
-  display: flex;
-  justify-content: center;
-  min-height: 100svh;
-  max-width: 100%;
-  margin: 0 auto;
+
+  .view-container {
+    margin-top: 6rem;
+  }
 }
 
 img {
@@ -73,16 +73,44 @@ a {
 }
 
 .notistack-SnackbarContainer {
+  @include font-space-grotesk;
+  @include uppercase;
   width: fit-content !important;
+  border-radius: 0 !important;
 }
 
 .notistack-MuiContent {
-  @include font-14;
+  @include font-space-grotesk;
+  @include uppercase;
   font-size: 1.2rem !important;
+  border-radius: 0 !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  @include font-space-grotesk;
+  @include uppercase;
+  border-radius: 0 !important;
+
+  .wallet-adapter-modal-button-close {
+    border-radius: 0 !important;
+    background: transparent !important;
+
+    svg {
+      fill: $color-secondary;
+    }
+  }
+
+  .wallet-adapter-modal-list {
+    .wallet-adapter-button {
+      @include font-space-grotesk;
+      @include uppercase;
+    }
+  }
 }
 
 .window-small {
   .app-container {
+    @include hide-scrollbar;
     overflow-x: hidden;
   }
 }

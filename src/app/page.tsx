@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import Home from '@/containers/Home/Home';
 import Squad from '@/containers/Squad/Squad';
+import SquadSpace from '@/containers/SquadSpace/SquadSpace';
 
 import Header from '@/components/Header/Header';
 
@@ -41,10 +42,13 @@ const Body = () => {
       <main className={windowSmallClassname}>
         <div className="app-container">
           <Header />
-          <Routes>
-            <Route path="/squad" element={<Squad />} />
-            <Route path="*" element={<Home />} />
-          </Routes>
+          <div className="view-container">
+            <Routes>
+              <Route path="/squad/:id" element={<SquadSpace />} />
+              <Route path="/squad" element={<Squad />} />
+              <Route path="*" element={<Home />} />
+            </Routes>
+          </div>
         </div>
       </main>
     </body>

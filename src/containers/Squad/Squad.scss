@@ -1,5 +1,64 @@
 @import 'src/styles/config';
 
 .squad {
+  @include column;
+  gap: 2rem;
+  padding: 3rem;
+  width: 100svw;
+  box-sizing: border-box;
 
+  .squad-title-container {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+
+    .squad-title {
+      font-size: 5.6rem;
+      font-weight: $font-weight-bold;
+      color: $color-primary;
+      text-shadow: $text-shadow-primary;
+    }
+
+    .squad-button {
+      @include base-button;
+      background: $color-tertiary;
+      color: $color-neutral;
+      box-sizing: border-box;
+      padding: 0 1rem;
+      box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+      position: relative;
+
+      &:hover {
+        @include mini-scale(1.02);
+        box-shadow: 4px 4px 4px $color-tertiary-dark;
+      }
+
+      .tag {
+        @include font-12;
+        position: absolute;
+        top: -1.6rem;
+        right: -0.5rem;
+        background: $color-secondary;
+        padding: 0.3rem;
+        color: $color-white01;
+      }
+    }
+  }
+
+  .squad-content {
+    @include column;
+    justify-content: space-between;
+    gap: 4rem;
+
+    .squad-list {
+      @include row;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+.window-small {
+  .squad {
+  }
 }

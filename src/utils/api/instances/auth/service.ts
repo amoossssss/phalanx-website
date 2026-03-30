@@ -13,6 +13,7 @@ type NonceResponse = {
 
 type MeResponse = {
   wallet_address: string;
+  alias: string | null;
 };
 
 const getNonce = async (walletAddress: string) => {
@@ -38,7 +39,7 @@ const me = async () => {
 
 const logout = async () => {
   const res = await postRequest(Route.logout, {});
-  return res.data as MeResponse;
+  return res.data as { ok: true };
 };
 
 export default {

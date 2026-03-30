@@ -1,0 +1,50 @@
+@import 'src/styles/config';
+
+.color-input {
+  @include font-16;
+  @include column;
+  gap: 0.4rem;
+  margin-top: 2.4rem;
+
+  .input-title-block {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+
+    .input-title {
+      line-height: 2.4rem;
+      color: $color-primary;
+    }
+  }
+
+  .input-block {
+    position: relative;
+
+    div {
+      border-radius: 0 !important;
+    }
+
+    .color-picker {
+      border-radius: 0;
+      box-sizing: border-box !important;
+      width: 100% !important;
+
+      label {
+        @include font-space-grotesk;
+        @include uppercase;
+        font-size: 1.4rem !important;
+      }
+
+      input {
+        @include font-space-grotesk;
+        @include uppercase;
+        font-size: 1.4rem !important;
+      }
+    }
+  }
+}
+
+.window-small {
+  .color-input {
+  }
+}

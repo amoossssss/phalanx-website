@@ -4,10 +4,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SnackbarProvider } from 'notistack';
 
 import NoSSR from '@/lib/NoSSR/NoSSR';
+import SolanaWalletProviders from '@/lib/SolanaWalletProviders/SolanaWalletProviders';
 
 import { AuthProvider } from '@/utils/contexts/AuthContext';
+import { UserProvider } from '@/utils/contexts/UserContext';
 
 import '@/utils/i18n/i18n';
+
+const AuthThenUser = ({ children }: { children: ReactNode }) => (
+  <AuthProvider>
+    <UserProvider>{children}</UserProvider>
+  </AuthProvider>
+);
+
+const SolanaThenAuth = ({ children }: { children: ReactNode }) => (
+  <SolanaWalletProviders>
+    <AuthThenUser>{children}</AuthThenUser>
+  </SolanaWalletProviders>
+);
 
 const ClientProvider = ({ children }: { children: ReactNode }) => {
   const client = new QueryClient();
@@ -17,7 +31,7 @@ const ClientProvider = ({ children }: { children: ReactNode }) => {
     { provider: NoSSR, props: {} },
     { provider: BrowserRouter, props: {} },
     { provider: SnackbarProvider, props: {} },
-    { provider: AuthProvider, props: {} },
+    { provider: SolanaThenAuth, props: {} },
   ];
 
   return (

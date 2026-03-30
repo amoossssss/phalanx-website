@@ -18,6 +18,9 @@ class SnackbarHelper {
     this.addMessage(msg, {
       ...snackbarConfig,
       variant: 'error',
+      style: {
+        backgroundColor: '#ff51fa',
+      },
     });
   }
 }
