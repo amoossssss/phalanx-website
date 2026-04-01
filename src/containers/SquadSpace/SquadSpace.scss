@@ -119,5 +119,32 @@
 
 .window-small {
   .squad-space {
+    padding: 3rem 2rem;
+
+    .squad-info-container {
+      border-left: 3px solid $color-primary;
+      flex-wrap: wrap;
+
+      .squad-avatar-container {
+        width: 5rem;
+        height: 5rem;
+      }
+
+      .squad-name-container {
+        .squad-name {
+          @include font-24;
+        }
+
+        .leader {
+          .leader-name {
+            @include font-14;
+          }
+        }
+      }
+
+      .squad-earnings {
+        width: 100%;
+      }
+    }
   }
 }

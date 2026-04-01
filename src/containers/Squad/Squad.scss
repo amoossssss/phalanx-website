@@ -60,5 +60,53 @@
 
 .window-small {
   .squad {
+    padding: 3rem 2rem;
+
+    .squad-title-container {
+      @include row;
+      align-items: center;
+      justify-content: space-between;
+
+      .squad-title {
+        @include font-28;
+      }
+
+      .squad-button {
+        @include base-button;
+        background: $color-tertiary;
+        color: $color-neutral;
+        box-sizing: border-box;
+        padding: 0 1rem;
+        box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+        position: relative;
+
+        &:hover {
+          @include mini-scale(1.02);
+          box-shadow: 4px 4px 4px $color-tertiary-dark;
+        }
+
+        .tag {
+          @include font-12;
+          position: absolute;
+          top: -1.6rem;
+          right: -0.5rem;
+          background: $color-secondary;
+          padding: 0.3rem;
+          color: $color-white01;
+        }
+      }
+    }
+
+    .squad-content {
+      @include column;
+      justify-content: space-between;
+      gap: 4rem;
+
+      .squad-list {
+        @include column;
+        align-items: center;
+        gap: 2rem;
+      }
+    }
   }
 }

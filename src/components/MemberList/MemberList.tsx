@@ -49,7 +49,7 @@ const MemberList = ({
               </div>
               <div className="col col-role">
                 <span className={`role-badge role-${member.role}`}>
-                  {member.role === 'captain' ? '<Captain>' : '<Member>'}
+                  {member.role === 'captain' ? 'Leader' : 'Member'}
                 </span>
               </div>
               <div className="col col-roi">

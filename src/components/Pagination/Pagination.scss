@@ -74,6 +74,11 @@
     .nav {
       gap: 0.8rem;
 
+      .edge {
+        min-width: 4rem;
+        box-sizing: border-box;
+      }
+
       .pages {
         gap: 0.4rem;
       }

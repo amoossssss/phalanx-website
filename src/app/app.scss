@@ -26,9 +26,12 @@ main {
 
 .app-container {
   @include font-14;
+  @include column;
+  height: 100svh;
 
   .view-container {
     margin-top: 6rem;
+    flex: 1;
   }
 }
 

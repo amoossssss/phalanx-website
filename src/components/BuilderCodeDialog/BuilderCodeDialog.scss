@@ -1,0 +1,99 @@
+@import 'src/styles/config';
+
+.builder-code-dialog {
+  @include dialog-container;
+
+  .dialog-content {
+    @include column;
+    position: relative;
+    padding: 2rem;
+    background: $color-neutral;
+    border: 2px solid $color-primary-dark;
+    width: 44rem;
+    box-sizing: border-box;
+    gap: 1.2rem;
+
+    .dialog-title {
+      @include font-28;
+      color: $color-primary;
+    }
+
+    .dialog-text {
+      @include font-14;
+      color: $color-white-70-percent;
+      line-height: 2.1rem;
+      white-space: pre-wrap;
+    }
+
+    .code-block {
+      @include column;
+      gap: 0.8rem;
+      padding: 1.2rem;
+      border: 1px solid $color-primary-dark;
+      background: $color-neutral-light;
+
+      .code-row {
+        @include row;
+        justify-content: space-between;
+        gap: 1.2rem;
+
+        .label {
+          @include font-12;
+          @include uppercase;
+          color: $color-white-50-percent;
+          flex: 0 0 auto;
+        }
+
+        .value {
+          @include font-space-grotesk;
+          @include font-14;
+          color: $color-primary;
+          text-align: right;
+          word-break: break-word;
+        }
+      }
+    }
+
+    .dialog-hint {
+      @include font-12;
+      color: $color-white-50-percent;
+      line-height: 1.8rem;
+      white-space: pre-wrap;
+    }
+
+    .action-row {
+      @include row;
+      justify-content: flex-end;
+      margin-top: 1.6rem;
+
+      .recheck-button {
+        @include base-button;
+        background: $color-tertiary;
+        color: $color-neutral;
+        box-sizing: border-box;
+        box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+        width: 100%;
+
+        &:hover {
+          @include mini-scale(1.02);
+          box-shadow: 4px 4px 4px $color-tertiary-dark;
+        }
+      }
+    }
+
+    .close-button {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+    }
+  }
+}
+
+.window-small {
+  .builder-code-dialog {
+    .dialog-content {
+      width: 100svw;
+      max-width: 44rem;
+    }
+  }
+}

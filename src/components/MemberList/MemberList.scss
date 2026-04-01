@@ -107,5 +107,35 @@
 
 .window-small {
   .member-list {
+    .member-table {
+      .member-row {
+        gap: 1rem;
+        padding: 0.8rem 1.2rem;
+
+        .col {
+          @include font-14;
+          min-width: 0;
+          color: $color-white01;
+        }
+
+        .col-member {
+          @include font-14;
+          flex: 0 0 8rem;
+        }
+
+        .col-pnl {
+          @include font-14;
+        }
+
+        .col-roi {
+          @include font-14;
+        }
+
+        .col-action {
+          flex: 0 0 5rem;
+          min-width: 5rem;
+        }
+      }
+    }
   }
 }

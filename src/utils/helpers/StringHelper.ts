@@ -20,6 +20,24 @@ class StringHelper {
     }
     return `${value}${suffix}`;
   };
+
+  static parseNumber = (value: string): number | null => {
+    const cleaned = value.replace(/,/g, '').trim();
+    if (!cleaned) return null;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  static sanitizeDecimalInput = (value: string): string => {
+    // Keep only digits and at most one dot.
+    const filtered = value.replace(/[^0-9.]/g, '');
+    const firstDot = filtered.indexOf('.');
+    if (firstDot === -1) return filtered;
+    return (
+      filtered.slice(0, firstDot + 1) +
+      filtered.slice(firstDot + 1).replace(/\./g, '')
+    );
+  };
 }
 
 export default StringHelper;

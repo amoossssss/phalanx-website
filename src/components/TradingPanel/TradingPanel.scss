@@ -1,0 +1,120 @@
+@import 'src/styles/config';
+
+.trading-panel {
+  @include column;
+  background: $color-neutral;
+  border: 1px solid $color-primary-dark;
+  border-left: 5px solid $color-primary;
+  box-sizing: border-box;
+  width: 100%;
+  flex: 1;
+
+  .chart-header {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.6rem;
+    background: $color-neutral-light;
+    border-bottom: 1px solid $color-primary-dark;
+    position: relative;
+    z-index: 3;
+
+    .market {
+      @include font-16-bold;
+      color: $color-primary;
+
+      .market-and-price {
+        @include row;
+        align-items: center;
+        gap: 1.2rem;
+      }
+
+      .panel-info-item {
+        @include column;
+        gap: 0.4rem;
+
+        .panel-info-label {
+          font-size: 1rem;
+          color: $color-white-50-percent;
+          line-height: 1;
+        }
+      }
+
+      .latest-price {
+        @include font-24;
+        line-height: 1;
+      }
+    }
+
+    .timeframe {
+      @include font-12;
+      @include row;
+      gap: 0.6rem;
+      color: $color-white-50-percent;
+      position: absolute;
+      left: 2rem;
+      top: 8rem;
+      background: $color-neutral;
+      z-index: 999;
+
+      .tf-btn {
+        @include font-12;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid $color-primary-dark;
+        background: transparent;
+        color: $color-white-70-percent;
+        cursor: pointer;
+      }
+
+      .tf-btn.active {
+        border-color: $color-primary;
+        color: $color-primary;
+        background: rgba(0, 255, 252, 0.08);
+      }
+    }
+  }
+  .panel-content {
+    @include row;
+    flex: 1;
+
+    .left-section {
+      flex: 1;
+
+      .top-section {
+        @include row;
+        align-items: stretch;
+
+        .chart-canvas {
+          @include center-item;
+          height: 46rem;
+          flex: 1;
+          min-width: 0;
+
+          .chart-placeholder {
+            @include font-14;
+            color: $color-white-50-percent;
+          }
+        }
+      }
+    }
+
+    .right-section {
+      @include column;
+    }
+  }
+
+  .side-panels {
+    @include row;
+    border-left: 1px solid $color-primary-dark;
+  }
+}
+
+.window-small {
+  .trading-panel {
+    .chart-shell {
+      .chart-canvas {
+        height: 46rem;
+      }
+    }
+  }
+}

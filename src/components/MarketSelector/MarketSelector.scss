@@ -1,0 +1,38 @@
+@import 'src/styles/config';
+
+.market-selector {
+  @include row;
+  align-items: center;
+
+  .market-container {
+    @include row;
+    align-items: center;
+    gap: 0.8rem;
+    background: $color-neutral;
+    padding: 1rem;
+    border: 2px solid $color-primary-dark;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    position: relative;
+
+    .token-image {
+      width: 2rem;
+      height: 2rem;
+      object-fit: contain;
+    }
+
+    .ticker {
+      @include font-space-grotesk;
+      @include font-20;
+      @include uppercase;
+      color: $color-white01;
+      text-shadow: $text-shadow-primary;
+    }
+  }
+}
+
+.window-small {
+  .market-selector {
+  }
+}

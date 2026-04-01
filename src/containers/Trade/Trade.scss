@@ -1,0 +1,18 @@
+@import 'src/styles/config';
+
+.trade {
+  @include column;
+  width: 100svw;
+  height: 100%;
+  box-sizing: border-box;
+
+  .trade-content {
+    background: $color-neutral-light;
+    flex: 1;
+  }
+}
+
+.window-small {
+  .trade {
+  }
+}

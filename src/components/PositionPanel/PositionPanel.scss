@@ -1,0 +1,41 @@
+@import 'src/styles/config';
+
+.position-panel {
+  @include column;
+  width: 100%;
+  border-top: 1px solid $color-primary-dark;
+  background: $color-neutral;
+  flex: 1;
+
+  .position-panel-tabs {
+    @include row;
+    border-bottom: 1px solid $color-primary-dark;
+    background: $color-neutral-light;
+    width: fit-content;
+  }
+
+  .tab {
+    @include font-12;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid $color-primary-dark;
+    background: transparent;
+    color: $color-white-70-percent;
+    cursor: pointer;
+  }
+
+  .tab.active {
+    border-color: $color-primary;
+    color: $color-primary;
+    background: rgba(0, 255, 252, 0.08);
+  }
+
+  .position-panel-body {
+    padding: 1.2rem 1.6rem;
+    min-height: 14rem;
+
+    .empty {
+      @include font-14;
+      color: $color-white-50-percent;
+    }
+  }
+}

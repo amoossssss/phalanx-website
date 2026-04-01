@@ -1,0 +1,123 @@
+@import 'src/styles/config';
+
+.orderbook {
+  @include column;
+  gap: 1rem;
+  padding: 1.2rem 1.6rem;
+  border-left: 1px solid $color-primary-dark;
+  min-width: 20rem;
+  box-sizing: border-box;
+
+  .orderbook-header {
+    @include row;
+    align-items: baseline;
+    justify-content: space-between;
+
+    .title {
+      @include font-14;
+      font-weight: 700;
+      color: $color-white-70-percent;
+    }
+
+    .meta {
+      @include row;
+      gap: 0.8rem;
+      color: $color-white-50-percent;
+      @include font-12;
+    }
+  }
+
+  .orderbook-table {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 1.2rem;
+
+    .side {
+      @include column;
+      gap: 0.6rem;
+
+      .side-header {
+        @include font-12;
+        color: $color-white-50-percent;
+      }
+
+      .rows {
+        @include column;
+        gap: 0.35rem;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 0.6fr;
+        gap: 0.6rem;
+        align-items: center;
+        position: relative;
+        padding: 0.3rem 0.4rem;
+        border-radius: 0.3rem;
+        overflow: hidden;
+      }
+
+      .row::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: var(--fill, 0%);
+        opacity: 0.32;
+        pointer-events: none;
+      }
+
+      &.asks .row::before {
+        left: 0;
+        background: linear-gradient(
+          to right,
+          rgba(255, 81, 250, 0.75),
+          rgba(255, 81, 250, 0.15)
+        );
+      }
+
+      .cell {
+        @include font-12;
+        color: $color-white-70-percent;
+        position: relative;
+        z-index: 1;
+      }
+
+      .cell.orders {
+        text-align: right;
+        color: $color-white-50-percent;
+      }
+
+      &.asks .cell.price {
+        color: #ff51fa;
+      }
+
+      &.bids .cell.price {
+        color: #8eff71;
+      }
+
+      &.bids .row::before {
+        left: 0;
+        background: linear-gradient(
+          to right,
+          rgba(142, 255, 113, 0.75),
+          rgba(142, 255, 113, 0.15)
+        );
+      }
+
+      .empty {
+        @include font-12;
+        color: $color-white-50-percent;
+        padding: 0.6rem 0;
+      }
+    }
+  }
+}
+
+.window-small {
+  .orderbook {
+    .orderbook-table {
+      grid-template-columns: 1fr;
+    }
+  }
+}

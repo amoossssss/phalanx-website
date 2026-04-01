@@ -14,7 +14,6 @@ class SnackbarHelper {
   }
 
   error(msg: string) {
-    console.error(msg);
     this.addMessage(msg, {
       ...snackbarConfig,
       variant: 'error',

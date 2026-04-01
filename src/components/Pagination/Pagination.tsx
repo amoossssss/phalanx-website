@@ -2,6 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
+import useWindowSize from '@/utils/hooks/useWindowSize';
+
 import './Pagination.scss';
 
 type PageEntry = number | 'gap';
@@ -41,6 +43,8 @@ type PaginationProps = {
 };
 
 const Pagination = ({ currentPage, totalPage, fetchData }: PaginationProps) => {
+  const { isWindowSmall } = useWindowSize();
+
   const goTo = useCallback(
     (page: number) => {
       if (page < 1 || page > totalPage || page === currentPage) {
@@ -71,7 +75,7 @@ const Pagination = ({ currentPage, totalPage, fetchData }: PaginationProps) => {
           disabled={!canPrev}
           onClick={() => goTo(currentPage - 1)}
         >
-          {'<Prev>'}
+          {isWindowSmall ? '<' : '<Prev>'}
         </ButtonDiv>
 
         <div className="pages">
@@ -97,7 +101,7 @@ const Pagination = ({ currentPage, totalPage, fetchData }: PaginationProps) => {
           disabled={!canNext}
           onClick={() => goTo(currentPage + 1)}
         >
-          {'<Next>'}
+          {isWindowSmall ? '>' : '<Next>'}
         </ButtonDiv>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import Home from '@/containers/Home/Home';
 import Squad from '@/containers/Squad/Squad';
 import SquadSpace from '@/containers/SquadSpace/SquadSpace';
+import Trade from '@/containers/Trade/Trade';
 
 import Header from '@/components/Header/Header';
 
@@ -46,6 +47,7 @@ const Body = () => {
             <Routes>
               <Route path="/squad/:id" element={<SquadSpace />} />
               <Route path="/squad" element={<Squad />} />
+              <Route path="/trade" element={<Trade />} />
               <Route path="*" element={<Home />} />
             </Routes>
           </div>

@@ -1,0 +1,190 @@
+@import 'src/styles/config';
+
+.order-panel {
+  @include column;
+  gap: 1.2rem;
+  padding: 1.2rem 1.6rem;
+  background: $color-neutral;
+  border-left: 1px solid $color-primary-dark;
+  height: 100%;
+  min-width: 20rem;
+
+  .order-panel-header {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+
+    .title {
+      @include font-14;
+      font-weight: 700;
+      color: $color-white-70-percent;
+    }
+
+    .type-toggle {
+      @include row;
+      gap: 0.6rem;
+    }
+
+    .toggle {
+      @include font-12;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid $color-primary-dark;
+      background: transparent;
+      color: $color-white-70-percent;
+    }
+
+    .toggle.active {
+      border-color: $color-primary;
+      color: $color-primary;
+      background: rgba(143, 245, 255, 0.08);
+    }
+  }
+
+  .side-toggle {
+    @include row;
+    gap: 0.6rem;
+  }
+
+  .side-btn {
+    @include font-12;
+    @include center-item;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid $color-primary-dark;
+    background: transparent;
+    color: $color-white-70-percent;
+    flex: 1;
+  }
+
+  .side-btn.buy.active {
+    border-color: $color-tertiary;
+    background: rgba(142, 255, 113, 0.12);
+    color: $color-tertiary;
+  }
+
+  .side-btn.sell.active {
+    border-color: $color-secondary;
+    background: rgba(255, 81, 250, 0.12);
+    color: $color-secondary;
+  }
+
+  .section {
+    @include column;
+    gap: 0.6rem;
+  }
+
+  .row {
+    @include row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+
+  .label {
+    @include font-12;
+    color: $color-white-50-percent;
+  }
+
+  .value {
+    @include font-12;
+    color: $color-white-70-percent;
+    white-space: nowrap;
+  }
+
+  .input {
+    @include font-space-grotesk;
+    @include font-14;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid $color-primary-dark;
+    background: $color-neutral-light;
+    color: $color-white01;
+    outline: none;
+
+    &.readonly {
+      border: none;
+    }
+  }
+
+  .input:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba(143, 245, 255, 0.12);
+  }
+
+  .slider {
+    width: 100%;
+    accent-color: $color-primary;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.5rem;
+    border-radius: 0;
+    background: $color-primary-dark;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: $color-primary;
+      height: 1rem;
+      width: 1.5rem;
+    }
+
+    &::-moz-range-thumb {
+      border: none; /* Removes extra default border */
+      background-color: $color-primary;
+      height: 1rem;
+      width: 1.5rem;
+    }
+  }
+
+  .slider-marks {
+    @include row;
+    justify-content: space-between;
+    color: $color-white-50-percent;
+    @include font-12;
+  }
+
+  .quick {
+    @include row;
+    gap: 0.6rem;
+  }
+
+  .quick-btn {
+    @include center-item;
+    @include font-12;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid $color-primary-dark;
+    background: transparent;
+    color: $color-white-70-percent;
+    flex: 1;
+  }
+
+  .quick-btn:hover {
+    border-color: $color-primary;
+  }
+
+  .submit {
+    @include base-button;
+    width: 100%;
+    background: $color-tertiary;
+    color: $color-neutral;
+
+    &.sell {
+      background: $color-secondary;
+      color: $color-white01;
+    }
+
+    &:hover {
+      @include mini-scale(1.02);
+    }
+  }
+
+  .submit.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .account-summary {
+    margin-top: auto;
+    border-top: 1px solid $color-primary-dark;
+    padding-top: 0.8rem;
+  }
+}

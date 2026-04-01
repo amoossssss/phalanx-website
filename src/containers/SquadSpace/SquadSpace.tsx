@@ -113,22 +113,22 @@ const SquadSpace = () => {
           </div>
         </div>
 
-        {isMySquad && <div className="my-squad">{'My_Squad'}</div>}
+        {isMySquad && <div className="my-squad">{'<My_Squad>'}</div>}
 
         <div className="action-button-list">
           {squad && mySquad === null && (
             <ButtonDiv className="join-button" onClick={handleJoinSquad}>
-              {'Join_Squad'}
+              {'<Join_Squad>'}
             </ButtonDiv>
           )}
           {squad && isLeader && (
             <ButtonDiv className="edit-button" onClick={handleEditSquad}>
-              {'Edit_Squad'}
+              {'<Edit_Squad>'}
             </ButtonDiv>
           )}
           {squad && isMySquad && (
             <ButtonDiv className="leave-button" onClick={handleLeaveSquad}>
-              {'Leave_Squad'}
+              {'<Leave_Squad>'}
             </ButtonDiv>
           )}
         </div>

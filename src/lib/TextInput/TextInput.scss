@@ -42,6 +42,10 @@
       color: $color-white01;
       outline: none;
 
+      &:focus {
+        border-color: $color-primary;
+      }
+
       &::placeholder {
         color: $color-white-20-percent;
       }
