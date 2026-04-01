@@ -77,6 +77,25 @@ const OrderPanel = ({
     return marketPrice && marketPrice > 0 ? marketPrice : null;
   }, [orderType, priceNum, marketPrice]);
 
+  const notionalUsd = useMemo(() => {
+    if (!tokenAmountNum || tokenAmountNum <= 0) return 0;
+    if (!effectivePrice || effectivePrice <= 0) return 0;
+    return tokenAmountNum * effectivePrice;
+  }, [effectivePrice, tokenAmountNum]);
+
+  const feeRate = useMemo(() => {
+    if (!accountInfo) return 0;
+    if (orderType === 'market') return accountInfo.takerFee ?? 0;
+    // Prefer maker fee for limit orders; fall back to taker if missing.
+    return accountInfo.makerFee ?? accountInfo.takerFee ?? 0;
+  }, [accountInfo, orderType]);
+
+  const feeEstimate = useMemo(() => {
+    if (!notionalUsd || notionalUsd <= 0) return 0;
+    if (!feeRate || feeRate <= 0) return 0;
+    return notionalUsd * feeRate;
+  }, [feeRate, notionalUsd]);
+
   const isTokenAmountValid = useMemo(() => {
     if (!tokenAmountNum || tokenAmountNum <= 0) return false;
     if (!lotSize || lotSize <= 0) return tokenAmountNum > 0;
@@ -93,8 +112,21 @@ const OrderPanel = ({
     if (orderType === 'limit') {
       if (!priceNum || priceNum <= 0) return false;
     }
+    // Reserve estimated fee from effective buying power (available balance * leverage).
+    if (notionalUsd > 0 && feeEstimate > 0) {
+      const effectiveBuyingPower = availableBalance * leverage;
+      if (notionalUsd + feeEstimate > effectiveBuyingPower) return false;
+    }
     return true;
-  }, [isTokenAmountValid, orderType, priceNum]);
+  }, [
+    availableBalance,
+    feeEstimate,
+    isTokenAmountValid,
+    leverage,
+    notionalUsd,
+    orderType,
+    priceNum,
+  ]);
 
   useEffect(() => {
     setAmount('');
@@ -372,6 +404,17 @@ const OrderPanel = ({
           disabled={true}
           readOnly={true}
         />
+      </div>
+
+      <div className="row">
+        <div className="label">{'Est_fee'}</div>
+        <div className="value">
+          {feeEstimate > 0
+            ? feeEstimate.toLocaleString(undefined, {
+                maximumFractionDigits: 6,
+              })
+            : '—'}
+        </div>
       </div>
 
       <ButtonDiv
