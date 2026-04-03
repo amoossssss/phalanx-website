@@ -80,6 +80,7 @@ a {
   @include uppercase;
   width: fit-content !important;
   border-radius: 0 !important;
+  z-index: 101 !important;
 }
 
 .notistack-MuiContent {

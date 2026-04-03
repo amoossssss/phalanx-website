@@ -1,5 +1,7 @@
 import bs58 from 'bs58';
 
+import PositionHelper from '@/utils/helpers/PositionHelper';
+
 export type BuilderApprovalRow = {
   builder_code?: string;
   max_fee_rate?: string;
@@ -44,6 +46,20 @@ export type PacificaOrderbook = {
   aggLevel?: number;
 };
 
+export type PacificaPosition = {
+  symbol: string;
+  side: 'bid' | 'ask';
+  amount: number;
+  entryPrice: number;
+  margin: number;
+  funding: number;
+  isolated: boolean;
+  liquidationPrice: number | null;
+  updatedAtMs: number;
+  // Some APIs may include a builder code for the position; keep it if present.
+  builder_code?: string;
+};
+
 const PACIFICA_API_BASE = 'https://api.pacifica.fi/api/v1';
 const PACIFICA_WS_URL = 'wss://ws.pacifica.fi/ws';
 
@@ -79,6 +95,19 @@ type PricesStreamRow = {
   mark?: string;
   oracle?: string;
   timestamp?: number;
+  [key: string]: unknown;
+};
+
+type AccountPositionsStreamRow = {
+  s: string;
+  d: string;
+  a: string;
+  p: string;
+  m: string;
+  f: string;
+  i: boolean;
+  l: string | null;
+  t: number;
   [key: string]: unknown;
 };
 
@@ -124,6 +153,11 @@ type LastPriceSubscriptionArgs = {
   onError?: (err: unknown) => void;
 };
 
+type PricesSubscriptionArgs = {
+  onPrices: (rows: PacificaMarketPriceRow[]) => void;
+  onError?: (err: unknown) => void;
+};
+
 type OrderbookSubscriptionArgs = {
   market: string;
   aggLevel?: 1 | 10 | 100 | 1000 | 10000;
@@ -148,9 +182,51 @@ export type PacificaAccountInfo = {
   updatedAtMs: number;
 };
 
+/** Per-market margin + leverage from `GET /account/settings`. */
+export type PacificaMarginSetting = {
+  symbol: string;
+  isolated: boolean;
+  leverage: number;
+  createdAtMs: number;
+  updatedAtMs: number;
+};
+
+export type PacificaAccountSettings = {
+  autoLendDisabled: boolean | null;
+  marginSettings: PacificaMarginSetting[];
+  spotSettings: unknown[];
+};
+
+/** `account_leverage` websocket payload (normalized). */
+export type PacificaAccountLeverageUpdate = {
+  account: string;
+  symbol: string;
+  leverage: number;
+  updatedAtMs: number;
+};
+
 type AccountInfoSubscriptionArgs = {
   account: string;
   onInfo: (info: PacificaAccountInfo) => void;
+  onError?: (err: unknown) => void;
+};
+
+type AccountPositionsSubscriptionArgs = {
+  account: string;
+  onPositions: (positions: PacificaPosition[]) => void;
+  onError?: (err: unknown) => void;
+};
+
+type AccountLeverageStreamData = {
+  u?: string;
+  s?: string;
+  l?: string | number;
+  t?: number;
+};
+
+type AccountLeverageSubscriptionArgs = {
+  account: string;
+  onLeverage: (update: PacificaAccountLeverageUpdate) => void;
   onError?: (err: unknown) => void;
 };
 
@@ -263,10 +339,7 @@ class PacificaWsManager {
       // Candle stream messages use channel="candle"
       if (channel === 'candle') {
         const data = env.data as CandleStreamData | undefined;
-        const key =
-          data && typeof data.s === 'string' && typeof data.i === 'string'
-            ? this.subKey('candle', data.s, data.i)
-            : null;
+        const key = data ? this.subKey('candle', data.s, data.i) : null;
         if (!key) return;
         const sub = this.subs.get(key);
         if (!sub) return;
@@ -279,7 +352,7 @@ class PacificaWsManager {
         const rows = env.data as TradesStreamRow[] | undefined;
         if (!Array.isArray(rows) || rows.length === 0) return;
         const first = rows[0];
-        const symbol = first && typeof first.s === 'string' ? first.s : null;
+        const symbol = first ? first.s : null;
         if (!symbol) return;
         const key = this.subKey('trades', symbol);
         const sub = this.subs.get(key);
@@ -306,15 +379,29 @@ class PacificaWsManager {
         return;
       }
 
+      // Account positions stream messages use channel="account_positions"
+      if (channel === 'account_positions') {
+        const key = this.subKey('account_positions', '*');
+        const sub = this.subs.get(key);
+        if (!sub) return;
+        sub.handlers.forEach((h) => h(env));
+        return;
+      }
+
+      // Account leverage stream messages use channel="account_leverage"
+      if (channel === 'account_leverage') {
+        const key = this.subKey('account_leverage', '*');
+        const sub = this.subs.get(key);
+        if (!sub) return;
+        sub.handlers.forEach((h) => h(env));
+        return;
+      }
+
       // Orderbook stream messages use channel="book"
       if (channel === 'book') {
         const data = env.data as OrderbookStreamData | undefined;
         const key =
-          data &&
-          typeof data.s === 'string' &&
-          typeof data.t === 'number' &&
-          data.l &&
-          Array.isArray(data.l)
+          data && data.l && Array.isArray(data.l)
             ? this.subKey('book', data.s)
             : null;
         if (!key) return;
@@ -749,6 +836,130 @@ class PacificaWsManager {
       this.cleanupIfIdle();
     };
   }
+
+  subscribeAccountPositions(args: {
+    account: string;
+    onPositions: (rows: AccountPositionsStreamRow[]) => void;
+    onError?: (err: unknown) => void;
+  }): () => void {
+    const key = this.subKey('account_positions', '*');
+
+    const params = {
+      source: 'account_positions',
+      account: args.account,
+    };
+    const subscribeMsg = JSON.stringify({ method: 'subscribe', params });
+    const unsubscribeMsg = JSON.stringify({ method: 'unsubscribe', params });
+
+    let sub = this.subs.get(key);
+    if (!sub) {
+      sub = {
+        subscribeMsg,
+        params,
+        handlers: new Set(),
+        errorHandlers: new Set(),
+      };
+      this.subs.set(key, sub);
+    }
+
+    const handler = (env: WsEnvelope<unknown>) => {
+      const rows = env.data as AccountPositionsStreamRow[] | undefined;
+      if (!Array.isArray(rows)) return;
+      args.onPositions(rows);
+    };
+
+    sub.handlers.add(handler);
+    if (args.onError) sub.errorHandlers.add(args.onError);
+
+    this.ensureConnected();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN && this.isOpen) {
+      try {
+        this.ws.send(subscribeMsg);
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      const cur = this.subs.get(key);
+      if (!cur) return;
+      cur.handlers.delete(handler);
+      if (args.onError) cur.errorHandlers.delete(args.onError);
+      if (cur.handlers.size === 0) {
+        this.subs.delete(key);
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          try {
+            this.ws.send(unsubscribeMsg);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      this.cleanupIfIdle();
+    };
+  }
+
+  subscribeAccountLeverage(args: {
+    account: string;
+    onLeverage: (data: AccountLeverageStreamData) => void;
+    onError?: (err: unknown) => void;
+  }): () => void {
+    const key = this.subKey('account_leverage', '*');
+
+    const params = {
+      source: 'account_leverage',
+      account: args.account,
+    };
+    const subscribeMsg = JSON.stringify({ method: 'subscribe', params });
+    const unsubscribeMsg = JSON.stringify({ method: 'unsubscribe', params });
+
+    let sub = this.subs.get(key);
+    if (!sub) {
+      sub = {
+        subscribeMsg,
+        params,
+        handlers: new Set(),
+        errorHandlers: new Set(),
+      };
+      this.subs.set(key, sub);
+    }
+
+    const handler = (env: WsEnvelope<unknown>) => {
+      const data = env.data as AccountLeverageStreamData | undefined;
+      if (!data || typeof data.s !== 'string') return;
+      args.onLeverage(data);
+    };
+
+    sub.handlers.add(handler);
+    if (args.onError) sub.errorHandlers.add(args.onError);
+
+    this.ensureConnected();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN && this.isOpen) {
+      try {
+        this.ws.send(subscribeMsg);
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      const cur = this.subs.get(key);
+      if (!cur) return;
+      cur.handlers.delete(handler);
+      if (args.onError) cur.errorHandlers.delete(args.onError);
+      if (cur.handlers.size === 0) {
+        this.subs.delete(key);
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          try {
+            this.ws.send(unsubscribeMsg);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      this.cleanupIfIdle();
+    };
+  }
 }
 
 type PacificaWsGlobal = { __pacificaWs?: PacificaWsManager };
@@ -917,6 +1128,185 @@ class PacificaHelper {
     };
   };
 
+  /**
+   * Account margin mode + leverage per symbol (REST).
+   * Docs: `GET /api/v1/account/settings`.
+   * See `https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/account/get-account-settings`.
+   */
+  static getAccountSettings = async (args: {
+    account: string;
+  }): Promise<PacificaAccountSettings> => {
+    const url = new URL(`${PACIFICA_API_BASE}/account/settings`);
+    url.searchParams.set('account', args.account);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error(`get account settings failed: ${res.status}`);
+    }
+
+    const json = (await res.json()) as unknown;
+    const data = (() => {
+      if (json && typeof json === 'object') {
+        const rec = json as Record<string, unknown>;
+        return rec.data;
+      }
+      return null;
+    })();
+
+    const d = (data ?? {}) as Record<string, unknown>;
+
+    const autoRaw = d.auto_lend_disabled;
+    const autoLendDisabled =
+      autoRaw === null || autoRaw === undefined
+        ? null
+        : typeof autoRaw === 'boolean'
+        ? autoRaw
+        : Boolean(autoRaw);
+
+    const marginRows = Array.isArray(d.margin_settings)
+      ? (d.margin_settings as Record<string, unknown>[])
+      : [];
+
+    const marginSettings: PacificaMarginSetting[] = marginRows.map((row) => {
+      const lev = row.leverage;
+      const leverage =
+        typeof lev === 'number'
+          ? lev
+          : typeof lev === 'string'
+          ? Number(lev)
+          : NaN;
+      return {
+        symbol: String(row.symbol ?? ''),
+        isolated: Boolean(row.isolated),
+        leverage: Number.isFinite(leverage) ? leverage : 0,
+        createdAtMs: Number(row.created_at) || 0,
+        updatedAtMs: Number(row.updated_at) || 0,
+      };
+    });
+
+    const spotSettings = Array.isArray(d.spot_settings) ? d.spot_settings : [];
+
+    return {
+      autoLendDisabled,
+      marginSettings,
+      spotSettings,
+    };
+  };
+
+  /**
+   * Update per-symbol leverage for an account.
+   * Docs: `POST /api/v1/account/leverage` with signing type `update_leverage`.
+   * See `https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/account/update-leverage`.
+   */
+  static updateLeverage = async (args: {
+    account: string;
+    symbol: string;
+    leverage: number;
+    signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+    expiryWindowMs?: number;
+    agentWallet?: string | null;
+  }) => {
+    const timestamp = Date.now();
+    const expiry_window = Math.max(0, Math.floor(args.expiryWindowMs ?? 30000));
+
+    const toSign = sortJsonKeys({
+      timestamp,
+      expiry_window,
+      type: 'update_leverage',
+      data: {
+        symbol: args.symbol,
+        leverage: Math.floor(args.leverage),
+      },
+    });
+
+    const compact = JSON.stringify(toSign);
+    const messageBytes = new TextEncoder().encode(compact);
+    const signatureBytes = await args.signMessage(messageBytes);
+    const signature = bs58.encode(signatureBytes);
+
+    const payload = {
+      account: args.account,
+      symbol: args.symbol,
+      leverage: Math.floor(args.leverage),
+      timestamp,
+      expiry_window,
+      agent_wallet: args.agentWallet ?? null,
+      signature,
+    };
+
+    const res = await fetch(`${PACIFICA_API_BASE}/account/leverage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const result = await res.json().catch(() => null);
+      const msg =
+        result && typeof result === 'object' && 'error' in result
+          ? String((result as { error?: unknown }).error ?? res.status)
+          : `${res.status}`;
+      throw new Error(`update leverage failed: ${msg}`);
+    }
+
+    return res.json().catch(() => null);
+  };
+
+  static getPositions = async (args: {
+    account: string;
+  }): Promise<PacificaPosition[]> => {
+    const url = new URL(`${PACIFICA_API_BASE}/positions`);
+    url.searchParams.set('account', args.account);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error(`get positions failed: ${res.status}`);
+    }
+
+    const json = (await res.json()) as unknown;
+    const data = (() => {
+      if (json && typeof json === 'object') {
+        const rec = json as Record<string, unknown>;
+        return rec.data;
+      }
+      return null;
+    })();
+
+    if (!Array.isArray(data)) return [];
+    return (data as Record<string, unknown>[]).map((row) => {
+      const symbol = String(row.symbol ?? row.s ?? '');
+      const side = String(row.side ?? row.d ?? '') as 'bid' | 'ask';
+      const amount = Number(row.amount ?? row.a ?? 0);
+      const entryPrice = Number(row.entry_price ?? row.p ?? 0);
+      const margin = Number(row.margin ?? row.m ?? 0);
+      const funding = Number(row.funding ?? row.f ?? 0);
+      const isolated = Boolean(row.isolated ?? row.i ?? false);
+      const liquidationPrice = Number(row.liquidation_price ?? row.l ?? null);
+      const updatedAtMs = Number(row.updated_at ?? row.t ?? 0);
+
+      const builder_code =
+        typeof (row as { builder_code?: unknown }).builder_code === 'string'
+          ? ((row as { builder_code?: unknown }).builder_code as string)
+          : undefined;
+
+      return {
+        symbol,
+        side,
+        amount: Number.isFinite(amount) ? amount : 0,
+        entryPrice: Number.isFinite(entryPrice) ? entryPrice : 0,
+        margin: Number.isFinite(margin) ? margin : 0,
+        funding: Number.isFinite(funding) ? funding : 0,
+        isolated,
+        liquidationPrice:
+          liquidationPrice !== null && Number.isFinite(liquidationPrice)
+            ? liquidationPrice
+            : null,
+        updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : 0,
+        builder_code,
+      } as PacificaPosition;
+    });
+  };
+
   static marketOrder = async (args: {
     account: string;
     symbol: string;
@@ -1042,6 +1432,87 @@ class PacificaHelper {
     return res.json().catch(() => null);
   };
 
+  /**
+   * Close (reduce) an open perp position via market or limit order with reduce_only.
+   * Pass the position's side (bid = long, ask = short); the helper submits the opposite side.
+   */
+  static closePosition = async (args: {
+    account: string;
+    symbol: string;
+    positionSide: 'bid' | 'ask';
+    amount: string;
+    /** When set, amount is floored to a multiple of this lot size before signing. */
+    lotSize?: number;
+    mode: 'market' | 'limit';
+    limitPrice?: number;
+    slippagePercent?: string;
+    builderCode: string;
+    signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+  }) => {
+    const closeSide: 'bid' | 'ask' =
+      args.positionSide === 'bid' ? 'ask' : 'bid';
+
+    let amountStr = args.amount.trim();
+    if (
+      args.lotSize !== undefined &&
+      Number.isFinite(args.lotSize) &&
+      args.lotSize > 0
+    ) {
+      const n = Number(amountStr.replace(/,/g, ''));
+      if (!Number.isFinite(n) || n <= 0) {
+        throw new Error('invalid close amount');
+      }
+      const onGrid = PositionHelper.floorToLotSize(n, args.lotSize);
+      if (onGrid <= 0) {
+        throw new Error('close amount must be at least one lot');
+      }
+      amountStr = PositionHelper.formatCloseAmountForApi(onGrid, args.lotSize);
+    }
+
+    if (args.mode === 'market') {
+      return PacificaHelper.marketOrder({
+        account: args.account,
+        symbol: args.symbol,
+        side: closeSide,
+        amount: amountStr,
+        slippagePercent: args.slippagePercent ?? '0.5',
+        reduceOnly: true,
+        builderCode: args.builderCode,
+        signMessage: args.signMessage,
+      });
+    }
+
+    const px = args.limitPrice;
+    if (px === undefined || !Number.isFinite(px) || px <= 0) {
+      throw new Error('limit close requires a positive limit price');
+    }
+
+    return PacificaHelper.limitOrder({
+      account: args.account,
+      symbol: args.symbol,
+      side: closeSide,
+      price: px,
+      amount: amountStr,
+      tif: 'GTC',
+      reduceOnly: true,
+      builderCode: args.builderCode,
+      signMessage: args.signMessage,
+    });
+  };
+
+  /** First available of mid / mark / oracle from a prices row (REST or WS). */
+  static getPriceFromPricesRow = (
+    row: PacificaMarketPriceRow,
+  ): number | null => {
+    const candidates = [row.mid, row.mark, row.oracle];
+    for (const c of candidates) {
+      if (typeof c !== 'string') continue;
+      const n = Number(c);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
+  };
+
   static getMarketPrice = async (args: {
     market: string;
   }): Promise<number | null> => {
@@ -1063,14 +1534,7 @@ class PacificaHelper {
     const rows = data as PacificaMarketPriceRow[];
     const row = rows.find((r) => r && r.symbol === args.market);
     if (!row) return null;
-
-    const candidates = [row.mid, row.mark, row.oracle];
-    for (const c of candidates) {
-      if (typeof c !== 'string') continue;
-      const n = Number(c);
-      if (Number.isFinite(n)) return n;
-    }
-    return null;
+    return PacificaHelper.getPriceFromPricesRow(row);
   };
 
   static getOrderbook = async (args: {
@@ -1211,9 +1675,26 @@ class PacificaHelper {
   };
 
   /**
-   * Subscribe to the latest traded price via websocket trades stream.
-   * Docs: `source=prices` which streams all symbols; we filter by symbol.
+   * Subscribe to all symbol price rows via websocket.
+   * Docs: `source=prices` streams updates for markets.
    * See `https://pacifica.gitbook.io/docs/api-documentation/api/websocket/subscriptions/prices`.
+   */
+  static subscribePrices = (args: PricesSubscriptionArgs): (() => void) => {
+    if (!wsManager) {
+      args.onError?.(new Error('websocket unavailable (server-side)'));
+      return () => {};
+    }
+
+    return wsManager.subscribePrices({
+      onPrices: (rows) => {
+        args.onPrices(rows as PacificaMarketPriceRow[]);
+      },
+      onError: args.onError,
+    });
+  };
+
+  /**
+   * Subscribe to the latest price for one symbol (filters global `prices` stream).
    */
   static subscribeLastPrice = (
     args: LastPriceSubscriptionArgs,
@@ -1227,15 +1708,10 @@ class PacificaHelper {
       onPrices: (rows) => {
         const row = rows.find((r) => r && r.symbol === args.market);
         if (!row) return;
-        const candidates = [row.mid, row.mark, row.oracle];
-        for (const c of candidates) {
-          if (typeof c !== 'string') continue;
-          const n = Number(c);
-          if (Number.isFinite(n)) {
-            args.onPrice(n);
-            return;
-          }
-        }
+        const n = PacificaHelper.getPriceFromPricesRow(
+          row as PacificaMarketPriceRow,
+        );
+        if (n !== null) args.onPrice(n);
       },
       onError: args.onError,
     });
@@ -1301,6 +1777,96 @@ class PacificaHelper {
         };
 
         args.onInfo(info);
+      },
+      onError: args.onError,
+    });
+  };
+
+  static subscribeAccountPositions = (
+    args: AccountPositionsSubscriptionArgs,
+  ): (() => void) => {
+    if (!wsManager) {
+      args.onError?.(new Error('websocket unavailable (server-side)'));
+      return () => {};
+    }
+
+    return wsManager.subscribeAccountPositions({
+      account: args.account,
+      onPositions: (rows) => {
+        const positions: PacificaPosition[] = rows.map((row) => {
+          const symbol = String(row.s ?? '');
+          const side = String(row.d ?? '') as 'bid' | 'ask';
+          const amount = Number(row.a ?? 0);
+          const entryPrice = Number(row.p ?? 0);
+          const margin = Number(row.m ?? 0);
+          const funding = Number(row.f ?? 0);
+          const isolated = Boolean(row.i ?? false);
+          const liquidationPrice =
+            typeof row.l === 'string' ? Number(row.l) : null;
+          const updatedAtMs = Number(row.t ?? 0);
+
+          const builder_code =
+            typeof (row as { builder_code?: unknown }).builder_code === 'string'
+              ? ((row as { builder_code?: unknown }).builder_code as string)
+              : undefined;
+
+          return {
+            symbol,
+            side,
+            amount: Number.isFinite(amount) ? amount : 0,
+            entryPrice: Number.isFinite(entryPrice) ? entryPrice : 0,
+            margin: Number.isFinite(margin) ? margin : 0,
+            funding: Number.isFinite(funding) ? funding : 0,
+            isolated,
+            liquidationPrice:
+              liquidationPrice !== null && Number.isFinite(liquidationPrice)
+                ? liquidationPrice
+                : null,
+            updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : 0,
+            builder_code,
+          };
+        });
+
+        args.onPositions(positions);
+      },
+      onError: args.onError,
+    });
+  };
+
+  /**
+   * Live leverage changes per symbol for an account.
+   * Docs: `source=account_leverage`, params include `account`.
+   * See `https://pacifica.gitbook.io/docs/api-documentation/api/websocket/subscriptions/account-leverage`.
+   */
+  static subscribeAccountLeverage = (
+    args: AccountLeverageSubscriptionArgs,
+  ): (() => void) => {
+    if (!wsManager) {
+      args.onError?.(new Error('websocket unavailable (server-side)'));
+      return () => {};
+    }
+
+    return wsManager.subscribeAccountLeverage({
+      account: args.account,
+      onLeverage: (raw) => {
+        const account = typeof raw.u === 'string' ? raw.u : args.account;
+        const symbol = raw.s;
+        if (!symbol) return;
+        const levRaw = raw.l;
+        const leverage =
+          typeof levRaw === 'number'
+            ? levRaw
+            : typeof levRaw === 'string'
+            ? Number(levRaw)
+            : NaN;
+        if (!Number.isFinite(leverage)) return;
+        const updatedAtMs = Number(raw.t);
+        args.onLeverage({
+          account,
+          symbol,
+          leverage,
+          updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : Date.now(),
+        });
       },
       onError: args.onError,
     });

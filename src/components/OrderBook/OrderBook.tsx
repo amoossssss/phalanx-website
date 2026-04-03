@@ -127,12 +127,6 @@ const OrderBook = ({
     <div className="orderbook">
       <div className="orderbook-header">
         <div className="title">{'Orderbook'}</div>
-        <div className="meta">
-          {/* <span className="meta-item">{market}</span> */}
-          <span className="meta-item">{`agg ${
-            book?.aggLevel ?? aggLevel
-          }`}</span>
-        </div>
       </div>
 
       <div className="orderbook-table">

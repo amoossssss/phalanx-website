@@ -1,10 +1,11 @@
-'use client';
-
 import { useEffect, useMemo, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 
+import UpdateLeverageDialog from '@/components/UpdateLeverageDialog/UpdateLeverageDialog';
+
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
+import Constants from '@/utils/constants/Constants';
 import EnvVariables from '@/utils/constants/EnvVariables';
 import PacificaHelper, {
   type PacificaAccountInfo,
@@ -62,6 +63,7 @@ const OrderPanel = ({
   const [tokenAmount, setTokenAmount] = useState('');
   const [marketPrice, setMarketPrice] = useState<number | null>(null);
   const [isOrderLoading, setIsOrderLoading] = useState(false);
+  const [isLeverageDialogOpen, setIsLeverageDialogOpen] = useState(false);
 
   // const amountNum = useMemo(() => parseNumber(amount), [amount]);
   const tokenAmountNum = useMemo(
@@ -139,6 +141,52 @@ const OrderPanel = ({
       setLeverage(maxLeverage);
     }
   }, [leverage, maxLeverage]);
+
+  useEffect(() => {
+    const account = userAddress;
+    if (!isLogin || !account || !market) {
+      setLeverage(1);
+      return;
+    }
+
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+      try {
+        const settings = await PacificaHelper.getAccountSettings({ account });
+        if (cancelled) return;
+        const row = settings.marginSettings.find((s) => s.symbol === market);
+        // Docs: default leverage returns blank for that market; default is max.
+        const next =
+          row && Number.isFinite(row.leverage) && row.leverage > 0
+            ? row.leverage
+            : maxLeverage;
+        setLeverage(clamp(Math.floor(next), 1, maxLeverage));
+      } catch (e) {
+        // Non-fatal: keep current leverage
+        console.warn('get account settings failed', e);
+      }
+    })();
+
+    unsubscribe = PacificaHelper.subscribeAccountLeverage({
+      account,
+      onLeverage: (u) => {
+        if (cancelled) return;
+        if (u.symbol !== market) return;
+        if (!Number.isFinite(u.leverage) || u.leverage <= 0) return;
+        setLeverage(clamp(Math.floor(u.leverage), 1, maxLeverage));
+      },
+      onError: (e) => {
+        console.warn('account leverage websocket error', e);
+      },
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [isLogin, market, maxLeverage, userAddress]);
 
   useEffect(() => {
     if (!market) return;
@@ -251,7 +299,12 @@ const OrderPanel = ({
   return (
     <div className="order-panel">
       <div className="order-panel-header">
-        <div className="title">{side === 'buy' ? 'Buy' : 'Sell'}</div>
+        <ButtonDiv
+          className="leverage-button"
+          onClick={() => setIsLeverageDialogOpen(true)}
+        >
+          {`${leverage}x`}
+        </ButtonDiv>
         <div className="type-toggle">
           <ButtonDiv
             className={orderType === 'market' ? 'toggle active' : 'toggle'}
@@ -268,6 +321,15 @@ const OrderPanel = ({
         </div>
       </div>
 
+      {isLeverageDialogOpen && (
+        <UpdateLeverageDialog
+          symbol={market}
+          currentLeverage={leverage}
+          close={() => setIsLeverageDialogOpen(false)}
+          onUpdated={(next) => setLeverage(clamp(next, 1, maxLeverage))}
+        />
+      )}
+
       <div className="side-toggle">
         <ButtonDiv
           className={side === 'buy' ? 'side-btn buy active' : 'side-btn buy'}
@@ -281,28 +343,6 @@ const OrderPanel = ({
         >
           {'Sell'}
         </ButtonDiv>
-      </div>
-
-      <div className="section">
-        <div className="row">
-          <div className="label">{'Leverage'}</div>
-          <div className="value">{`${leverage}x`}</div>
-        </div>
-        <input
-          className="slider"
-          type="range"
-          min={1}
-          max={maxLeverage}
-          step={1}
-          value={leverage}
-          onChange={(e) =>
-            setLeverage(clamp(Number(e.target.value), 1, maxLeverage))
-          }
-        />
-        <div className="slider-marks">
-          <span>{'1x'}</span>
-          <span>{`${maxLeverage}x`}</span>
-        </div>
       </div>
 
       {orderType === 'limit' && (
@@ -358,7 +398,7 @@ const OrderPanel = ({
         />
 
         <div className="quick">
-          {([25, 50, 75, 100] as const).map((pct) => (
+          {Constants.QUICK_PCTS.map((pct) => (
             <ButtonDiv
               key={pct}
               className="quick-btn"

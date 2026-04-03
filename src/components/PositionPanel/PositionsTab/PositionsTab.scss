@@ -1,0 +1,204 @@
+@import 'src/styles/config';
+
+.positions-tab {
+  @include column;
+  width: 100%;
+
+  .positions-scroll {
+    width: 100%;
+    max-height: 220px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: $color-primary-dark transparent;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $color-primary-dark;
+      border-radius: 3px;
+    }
+  }
+
+  .positions-table {
+    border-collapse: separate;
+    border-spacing: 0 0.2rem;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .positions-header {
+    @include font-12;
+    text-align: left;
+    border-bottom: 1px solid $color-primary-dark;
+    background: $color-neutral-light;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-white-50-percent;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+
+    th:last-child {
+      @include center-item;
+    }
+  }
+
+  .positions-row {
+    @include font-12;
+    color: $color-white-70-percent;
+
+    td {
+      background: rgba(12, 18, 33, 0.8);
+    }
+
+    &:nth-child(2n) td {
+      background: rgba(12, 18, 33, 0.6);
+    }
+
+    &:hover td {
+      background: rgba(0, 255, 252, 0.06);
+    }
+
+    td:first-child {
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+
+    td:last-child {
+      @include center-item;
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+
+  .col {
+    flex-shrink: 0;
+    padding: 0.35rem 0.6rem;
+    vertical-align: middle;
+
+    &.symbol {
+      flex: 1.1;
+      font-weight: 500;
+      color: $color-white;
+    }
+
+    &.side {
+      flex: 1.15;
+      font-weight: 500;
+      white-space: nowrap;
+
+      &.long {
+        color: $color-tertiary;
+      }
+
+      &.short {
+        color: $color-secondary;
+      }
+    }
+
+    &.amount {
+      flex: 0.8;
+      text-align: right;
+    }
+
+    &.mark {
+      flex: 1;
+      text-align: right;
+    }
+
+    &.pnl {
+      flex: 1.35;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+
+      &.positive {
+        color: $color-tertiary;
+      }
+
+      &.negative {
+        color: $color-secondary;
+      }
+    }
+
+    &.value {
+      flex: 1.1;
+      text-align: right;
+    }
+
+    &.entry {
+      flex: 1.1;
+      text-align: right;
+    }
+
+    &.margin {
+      flex: 0.9;
+      text-align: right;
+    }
+
+    &.funding {
+      flex: 0.9;
+      text-align: right;
+    }
+
+    &.liq {
+      flex: 1;
+      text-align: right;
+    }
+
+    &.mode {
+      flex: 0.9;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: $color-white-50-percent;
+    }
+
+    &.actions {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      min-width: 4.5rem;
+      padding-left: 0.75rem;
+      margin-left: 0.25rem;
+      box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  .positions-header .col.actions {
+    z-index: 3;
+    background: $color-neutral-light;
+    box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.45);
+  }
+
+  // Ensure sticky actions cell stays opaque (matches row bg)
+  .positions-row td.col.actions {
+    background: rgba(12, 18, 33, 0.97);
+  }
+
+  .positions-row:nth-child(2n) td.col.actions {
+    background: rgba(12, 18, 33, 0.92);
+  }
+
+  .positions-row:hover td.col.actions {
+    background: rgba(0, 255, 252, 0.1);
+  }
+
+  .close-btn {
+    @include center-item;
+    @include font-12;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid $color-primary-dark;
+    color: $color-white-50-percent;
+    background: transparent;
+  }
+}
+
+.positions-tab-empty {
+  @include font-14;
+  color: $color-white-50-percent;
+  margin: auto;
+}

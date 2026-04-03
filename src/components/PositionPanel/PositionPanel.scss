@@ -30,7 +30,7 @@
   }
 
   .position-panel-body {
-    padding: 1.2rem 1.6rem;
+    @include column;
     min-height: 14rem;
 
     .empty {

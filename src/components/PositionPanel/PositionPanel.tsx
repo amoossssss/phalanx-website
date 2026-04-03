@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 
+import PositionsTab from '@/components/PositionPanel/PositionsTab/PositionsTab';
+
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
+
+import type { PacificaMarketInfo } from '@/utils/helpers/PacificaHelper';
 
 import './PositionPanel.scss';
 
@@ -13,12 +17,16 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'orderHistory', label: 'Order_History' },
 ];
 
-const PositionPanel = () => {
-  const [active, setActive] = useState<TabKey>('positions');
+type PositionPanelProps = {
+  markets?: PacificaMarketInfo[];
+};
+
+const PositionPanel = ({ markets }: PositionPanelProps) => {
+  const [activeTab, setActiveTab] = useState<TabKey>('positions');
 
   const activeLabel = useMemo(
-    () => TABS.find((t) => t.key === active)?.label ?? 'Positions',
-    [active],
+    () => TABS.find((t) => t.key === activeTab)?.label ?? 'Positions',
+    [activeTab],
   );
 
   return (
@@ -28,9 +36,9 @@ const PositionPanel = () => {
           <ButtonDiv
             key={t.key}
             role="tab"
-            aria-selected={t.key === active}
-            className={t.key === active ? 'tab active' : 'tab'}
-            onClick={() => setActive(t.key)}
+            aria-selected={t.key === activeTab}
+            className={t.key === activeTab ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab(t.key)}
           >
             {t.label}
           </ButtonDiv>
@@ -38,7 +46,11 @@ const PositionPanel = () => {
       </div>
 
       <div className="position-panel-body" role="tabpanel">
-        <div className="empty">{`${activeLabel} — coming soon`}</div>
+        {activeTab === 'positions' ? (
+          <PositionsTab markets={markets} />
+        ) : (
+          <div className="empty">{`${activeLabel} — coming soon`}</div>
+        )}
       </div>
     </div>
   );

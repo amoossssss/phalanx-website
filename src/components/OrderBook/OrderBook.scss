@@ -18,13 +18,6 @@
       font-weight: 700;
       color: $color-white-70-percent;
     }
-
-    .meta {
-      @include row;
-      gap: 0.8rem;
-      color: $color-white-50-percent;
-      @include font-12;
-    }
   }
 
   .orderbook-table {

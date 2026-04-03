@@ -250,7 +250,7 @@ const TradingPanel = ({
             </div>
           </div>
 
-          <PositionPanel />
+          <PositionPanel markets={loadedMarkets} />
         </div>
         <div className="right-section">
           <OrderPanel

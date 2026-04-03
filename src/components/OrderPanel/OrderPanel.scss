@@ -13,6 +13,17 @@
     @include row;
     align-items: center;
     justify-content: space-between;
+    gap: 0.6rem;
+
+    .leverage-button {
+      @include center-item;
+      @include font-12;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid $color-primary;
+      color: $color-primary;
+      background: rgba(143, 245, 255, 0.08);
+      flex: 1;
+    }
 
     .title {
       @include font-14;
@@ -109,39 +120,6 @@
     box-shadow: 0 0 0 2px rgba(143, 245, 255, 0.12);
   }
 
-  .slider {
-    width: 100%;
-    accent-color: $color-primary;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 0.5rem;
-    border-radius: 0;
-    background: $color-primary-dark;
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      background-color: $color-primary;
-      height: 1rem;
-      width: 1.5rem;
-    }
-
-    &::-moz-range-thumb {
-      border: none; /* Removes extra default border */
-      background-color: $color-primary;
-      height: 1rem;
-      width: 1.5rem;
-    }
-  }
-
-  .slider-marks {
-    @include row;
-    justify-content: space-between;
-    color: $color-white-50-percent;
-    @include font-12;
-  }
-
   .quick {
     @include row;
     gap: 0.6rem;
@@ -155,10 +133,10 @@
     background: transparent;
     color: $color-white-70-percent;
     flex: 1;
-  }
 
-  .quick-btn:hover {
-    border-color: $color-primary;
+    &:hover {
+      border-color: $color-primary;
+    }
   }
 
   .submit {

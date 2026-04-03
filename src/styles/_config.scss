@@ -230,11 +230,11 @@ $font-family-display: 'Space Grotesk', 'Montserrat', sans-serif;
   width: 100vw;
   height: 100svh;
   background: $color-black-50-percent;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
   padding: 0;
   margin: 0;
   top: 0;
-  z-index: 10000;
+  z-index: 100;
   overflow: hidden;
   position: fixed;
 }
