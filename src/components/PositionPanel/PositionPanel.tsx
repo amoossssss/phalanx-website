@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 
+import OpenOrdersTab from '@/components/PositionPanel/OpenOrdersTab/OpenOrdersTab';
+import OrderHistoryTab from '@/components/PositionPanel/OrderHistoryTab/OrderHistoryTab';
 import PositionsTab from '@/components/PositionPanel/PositionsTab/PositionsTab';
+import TradingHistoryTab from '@/components/PositionPanel/TradingHistoryTab/TradingHistoryTab';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
@@ -19,9 +22,17 @@ const TABS: { key: TabKey; label: string }[] = [
 
 type PositionPanelProps = {
   markets?: PacificaMarketInfo[];
+  /** Chart market; used when switching to Positions / Open Orders tabs to sync `?token=`. */
+  selectedMarket?: string;
+  /** Sets chart market and `/trade?token=` (row clicks pass the row symbol). */
+  onSelectSymbol?: (symbol: string) => void;
 };
 
-const PositionPanel = ({ markets }: PositionPanelProps) => {
+const PositionPanel = ({
+  markets,
+  selectedMarket = '',
+  onSelectSymbol,
+}: PositionPanelProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>('positions');
 
   const activeLabel = useMemo(
@@ -38,7 +49,19 @@ const PositionPanel = ({ markets }: PositionPanelProps) => {
             role="tab"
             aria-selected={t.key === activeTab}
             className={t.key === activeTab ? 'tab active' : 'tab'}
-            onClick={() => setActiveTab(t.key)}
+            onClick={() => {
+              setActiveTab(t.key);
+              if (
+                (t.key === 'positions' ||
+                  t.key === 'openOrders' ||
+                  t.key === 'tradeHistory' ||
+                  t.key === 'orderHistory') &&
+                selectedMarket &&
+                onSelectSymbol
+              ) {
+                onSelectSymbol(selectedMarket);
+              }
+            }}
           >
             {t.label}
           </ButtonDiv>
@@ -47,7 +70,19 @@ const PositionPanel = ({ markets }: PositionPanelProps) => {
 
       <div className="position-panel-body" role="tabpanel">
         {activeTab === 'positions' ? (
-          <PositionsTab markets={markets} />
+          <PositionsTab markets={markets} onSelectSymbol={onSelectSymbol} />
+        ) : activeTab === 'openOrders' ? (
+          <OpenOrdersTab onSelectSymbol={onSelectSymbol} />
+        ) : activeTab === 'tradeHistory' ? (
+          <TradingHistoryTab
+            selectedMarket={selectedMarket}
+            onSelectSymbol={onSelectSymbol}
+          />
+        ) : activeTab === 'orderHistory' ? (
+          <OrderHistoryTab
+            selectedMarket={selectedMarket}
+            onSelectSymbol={onSelectSymbol}
+          />
         ) : (
           <div className="empty">{`${activeLabel} — coming soon`}</div>
         )}

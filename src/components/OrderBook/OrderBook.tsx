@@ -18,27 +18,27 @@ type OrderBookProps = {
   maxLevels?: number;
 };
 
-function formatNumber(n: number, digits: number) {
+const formatNumber = (n: number, digits: number) => {
   return n.toLocaleString(undefined, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
-}
+};
 
-function formatAmount(n: number) {
+const formatAmount = (n: number) => {
   return n.toLocaleString(undefined, {
     maximumFractionDigits: 6,
   });
-}
+};
 
-function usdNotional(level: PacificaOrderbookLevel) {
+const usdNotional = (level: PacificaOrderbookLevel) => {
   const v = level.price * level.amount;
   return Number.isFinite(v) ? v : 0;
-}
+};
 
-function topN(levels: PacificaOrderbookLevel[], n: number) {
+const topN = (levels: PacificaOrderbookLevel[], n: number) => {
   return levels.slice(0, n);
-}
+};
 
 const OrderBook = ({
   market,

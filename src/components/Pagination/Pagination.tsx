@@ -8,7 +8,7 @@ import './Pagination.scss';
 
 type PageEntry = number | 'gap';
 
-function buildPageList(current: number, total: number): PageEntry[] {
+const buildPageList = (current: number, total: number): PageEntry[] => {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }
@@ -34,7 +34,7 @@ function buildPageList(current: number, total: number): PageEntry[] {
   }
 
   return out;
-}
+};
 
 type PaginationProps = {
   currentPage: number;

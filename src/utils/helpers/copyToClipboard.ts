@@ -3,7 +3,7 @@
  * Sync execCommand runs first so it stays inside the user gesture; Clipboard API
  * is used when execCommand fails (e.g. some locked-down contexts).
  */
-export async function copyToClipboard(text: string): Promise<boolean> {
+export const copyToClipboard = async (text: string): Promise<boolean> => {
   if (typeof text !== 'string' || text.length === 0) return false;
 
   // 1) Synchronous copy inside the same tick as click — best for incognito / iOS
@@ -25,9 +25,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 
   return false;
-}
+};
 
-function copyViaExecCommand(text: string): boolean {
+const copyViaExecCommand = (text: string): boolean => {
   const ta = document.createElement('textarea');
   ta.value = text;
   ta.setAttribute('readonly', '');
@@ -67,9 +67,9 @@ function copyViaExecCommand(text: string): boolean {
     document.body.removeChild(ta);
   }
   return ok;
-}
+};
 
-function copyViaContentEditable(text: string): boolean {
+const copyViaContentEditable = (text: string): boolean => {
   const el = document.createElement('div');
   el.contentEditable = 'true';
   el.textContent = text;
@@ -90,4 +90,4 @@ function copyViaContentEditable(text: string): boolean {
     document.body.removeChild(el);
   }
   return ok;
-}
+};

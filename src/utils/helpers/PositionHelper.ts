@@ -137,8 +137,7 @@ class PositionHelper {
     const frac = Math.min(1, Math.max(0, args.closeFraction));
     const raw = absSize * frac;
     const lot = args.lotSize;
-    const lotOk =
-      lot !== undefined && Number.isFinite(lot) && lot > 0;
+    const lotOk = lot !== undefined && Number.isFinite(lot) && lot > 0;
     if (!lotOk) {
       return Math.min(raw, absSize);
     }

@@ -15,9 +15,10 @@ import './PositionsTab.scss';
 
 type PositionsTabProps = {
   markets?: PacificaMarketInfo[];
+  onSelectSymbol?: (symbol: string) => void;
 };
 
-const PositionsTab = ({ markets }: PositionsTabProps) => {
+const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
   const { userAddress, isLogin } = useAuth();
 
   const [positions, setPositions] = useState<PacificaPosition[]>([]);
@@ -305,7 +306,15 @@ const PositionsTab = ({ markets }: PositionsTabProps) => {
               const sideLabel = lev !== null ? `${lev}x_${sideTag}` : sideTag;
 
               return (
-                <tr key={`${p.symbol}-${p.side}`} className="positions-row">
+                <tr
+                  key={`${p.symbol}-${p.side}`}
+                  className={`positions-row${
+                    onSelectSymbol ? ' is-clickable' : ''
+                  }`}
+                  onClick={() => {
+                    if (p.symbol) onSelectSymbol?.(p.symbol);
+                  }}
+                >
                   <td className="col symbol">{p.symbol}</td>
                   <td className={`col side ${PositionHelper.sideTag(p.side)}`}>
                     {sideLabel}
@@ -386,7 +395,10 @@ const PositionsTab = ({ markets }: PositionsTabProps) => {
                   <td className="col actions">
                     <ButtonDiv
                       className="close-btn"
-                      onClick={() => setExitTarget(p)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExitTarget(p);
+                      }}
                     >
                       {'Close'}
                     </ButtonDiv>

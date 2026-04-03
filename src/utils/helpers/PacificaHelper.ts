@@ -60,6 +60,60 @@ export type PacificaPosition = {
   builder_code?: string;
 };
 
+/** User trade fill from `GET /trades/history` or `account_trades` websocket. */
+export type PacificaTradeHistory = {
+  historyId: number;
+  orderId: number;
+  clientOrderId: string | null;
+  symbol: string;
+  amount: string;
+  price: string;
+  entryPrice: string;
+  fee: string;
+  pnl: string;
+  eventType: string;
+  side: string;
+  cause: string;
+  createdAtMs: number;
+};
+
+/** Normalized open order from REST `GET /orders` or merged with websocket `account_order_updates`. */
+export type PacificaOpenOrder = {
+  orderId: number;
+  clientOrderId: string | null;
+  symbol: string;
+  side: 'bid' | 'ask';
+  price: string;
+  initialAmount: string;
+  filledAmount: string;
+  cancelledAmount: string;
+  orderType: string;
+  reduceOnly: boolean;
+  orderStatus: string;
+  createdAtMs: number;
+  updatedAtMs: number;
+};
+
+/** Historical order from REST `GET /orders/history`. */
+export type PacificaOrderHistory = {
+  orderId: number;
+  clientOrderId: string | null;
+  symbol: string;
+  side: 'bid' | 'ask';
+  initialPrice: string;
+  averageFilledPrice: string;
+  amount: string;
+  filledAmount: string;
+  orderStatus: string;
+  orderType: string;
+  stopPrice: string | null;
+  stopParentOrderId: number | null;
+  reduceOnly: boolean;
+  reason: string | null;
+  createdAtMs: number;
+  updatedAtMs: number;
+};
+
 const PACIFICA_API_BASE = 'https://api.pacifica.fi/api/v1';
 const PACIFICA_WS_URL = 'wss://ws.pacifica.fi/ws';
 
@@ -224,9 +278,65 @@ type AccountLeverageStreamData = {
   t?: number;
 };
 
+/** `account_order_updates` stream row (short keys). See Pacifica websocket docs. */
+export type PacificaAccountOrderStreamRow = {
+  i?: number;
+  I?: string | null;
+  u?: string;
+  s?: string;
+  d?: string;
+  p?: string;
+  ip?: string;
+  lp?: string;
+  a?: string;
+  f?: string;
+  oe?: string;
+  os?: string;
+  ot?: string;
+  sp?: string | null;
+  si?: string | null;
+  r?: boolean;
+  ct?: number;
+  ut?: number;
+  li?: number;
+  [key: string]: unknown;
+};
+
+/** `account_trades` stream row (short keys). See Pacifica websocket docs. */
+export type PacificaAccountTradeStreamRow = {
+  h?: number;
+  i?: number;
+  I?: string | null;
+  u?: string;
+  s?: string;
+  p?: string;
+  o?: string;
+  a?: string;
+  te?: string;
+  ts?: string;
+  tc?: string;
+  f?: string;
+  n?: string;
+  t?: number;
+  li?: number;
+  [key: string]: unknown;
+};
+
 type AccountLeverageSubscriptionArgs = {
   account: string;
   onLeverage: (update: PacificaAccountLeverageUpdate) => void;
+  onError?: (err: unknown) => void;
+};
+
+type AccountOrderUpdatesSubscriptionArgs = {
+  account: string;
+  onOrderEvents: (rows: PacificaAccountOrderStreamRow[]) => void;
+  onError?: (err: unknown) => void;
+};
+
+type AccountTradesSubscriptionArgs = {
+  account: string;
+  onTrades: (rows: PacificaAccountTradeStreamRow[]) => void;
   onError?: (err: unknown) => void;
 };
 
@@ -391,6 +501,24 @@ class PacificaWsManager {
       // Account leverage stream messages use channel="account_leverage"
       if (channel === 'account_leverage') {
         const key = this.subKey('account_leverage', '*');
+        const sub = this.subs.get(key);
+        if (!sub) return;
+        sub.handlers.forEach((h) => h(env));
+        return;
+      }
+
+      // Account order updates: channel="account_order_updates"
+      if (channel === 'account_order_updates') {
+        const key = this.subKey('account_order_updates', '*');
+        const sub = this.subs.get(key);
+        if (!sub) return;
+        sub.handlers.forEach((h) => h(env));
+        return;
+      }
+
+      // Account trades: channel="account_trades"
+      if (channel === 'account_trades') {
+        const key = this.subKey('account_trades', '*');
         const sub = this.subs.get(key);
         if (!sub) return;
         sub.handlers.forEach((h) => h(env));
@@ -960,6 +1088,124 @@ class PacificaWsManager {
       this.cleanupIfIdle();
     };
   }
+
+  subscribeAccountOrderUpdates(
+    args: AccountOrderUpdatesSubscriptionArgs,
+  ): () => void {
+    const key = this.subKey('account_order_updates', '*');
+
+    const params = {
+      source: 'account_order_updates',
+      account: args.account,
+    };
+    const subscribeMsg = JSON.stringify({ method: 'subscribe', params });
+    const unsubscribeMsg = JSON.stringify({ method: 'unsubscribe', params });
+
+    let sub = this.subs.get(key);
+    if (!sub) {
+      sub = {
+        subscribeMsg,
+        params,
+        handlers: new Set(),
+        errorHandlers: new Set(),
+      };
+      this.subs.set(key, sub);
+    }
+
+    const handler = (env: WsEnvelope<unknown>) => {
+      const rows = env.data as PacificaAccountOrderStreamRow[] | undefined;
+      if (!Array.isArray(rows)) return;
+      args.onOrderEvents(rows);
+    };
+
+    sub.handlers.add(handler);
+    if (args.onError) sub.errorHandlers.add(args.onError);
+
+    this.ensureConnected();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN && this.isOpen) {
+      try {
+        this.ws.send(subscribeMsg);
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      const cur = this.subs.get(key);
+      if (!cur) return;
+      cur.handlers.delete(handler);
+      if (args.onError) cur.errorHandlers.delete(args.onError);
+      if (cur.handlers.size === 0) {
+        this.subs.delete(key);
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          try {
+            this.ws.send(unsubscribeMsg);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      this.cleanupIfIdle();
+    };
+  }
+
+  subscribeAccountTrades(args: AccountTradesSubscriptionArgs): () => void {
+    const key = this.subKey('account_trades', '*');
+
+    const params = {
+      source: 'account_trades',
+      account: args.account,
+    };
+    const subscribeMsg = JSON.stringify({ method: 'subscribe', params });
+    const unsubscribeMsg = JSON.stringify({ method: 'unsubscribe', params });
+
+    let sub = this.subs.get(key);
+    if (!sub) {
+      sub = {
+        subscribeMsg,
+        params,
+        handlers: new Set(),
+        errorHandlers: new Set(),
+      };
+      this.subs.set(key, sub);
+    }
+
+    const handler = (env: WsEnvelope<unknown>) => {
+      const rows = env.data as PacificaAccountTradeStreamRow[] | undefined;
+      if (!Array.isArray(rows)) return;
+      args.onTrades(rows);
+    };
+
+    sub.handlers.add(handler);
+    if (args.onError) sub.errorHandlers.add(args.onError);
+
+    this.ensureConnected();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN && this.isOpen) {
+      try {
+        this.ws.send(subscribeMsg);
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      const cur = this.subs.get(key);
+      if (!cur) return;
+      cur.handlers.delete(handler);
+      if (args.onError) cur.errorHandlers.delete(args.onError);
+      if (cur.handlers.size === 0) {
+        this.subs.delete(key);
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          try {
+            this.ws.send(unsubscribeMsg);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      this.cleanupIfIdle();
+    };
+  }
 }
 
 type PacificaWsGlobal = { __pacificaWs?: PacificaWsManager };
@@ -1307,6 +1553,395 @@ class PacificaHelper {
     });
   };
 
+  /** REST open orders: `GET /api/v1/orders?account=…`. */
+  static getOpenOrders = async (args: {
+    account: string;
+  }): Promise<PacificaOpenOrder[]> => {
+    const url = new URL(`${PACIFICA_API_BASE}/orders`);
+    url.searchParams.set('account', args.account);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error(`get open orders failed: ${res.status}`);
+    }
+
+    const json = (await res.json()) as unknown;
+    const data = (() => {
+      if (json && typeof json === 'object') {
+        const rec = json as Record<string, unknown>;
+        return rec.data;
+      }
+      return null;
+    })();
+
+    if (!Array.isArray(data)) return [];
+
+    const out: PacificaOpenOrder[] = [];
+    for (const row of data as Record<string, unknown>[]) {
+      const orderId = Number(row.order_id ?? row.orderId ?? 0);
+      if (!Number.isFinite(orderId) || orderId <= 0) continue;
+
+      const clientRaw = row.client_order_id ?? row.clientOrderId;
+      const clientOrderId =
+        clientRaw === null || clientRaw === undefined
+          ? null
+          : String(clientRaw);
+      const symbol = String(row.symbol ?? '');
+      const side = String(row.side ?? '') === 'ask' ? 'ask' : 'bid';
+      out.push({
+        orderId,
+        clientOrderId,
+        symbol,
+        side,
+        price: String(row.price ?? ''),
+        initialAmount: String(row.initial_amount ?? row.initialAmount ?? '0'),
+        filledAmount: String(row.filled_amount ?? row.filledAmount ?? '0'),
+        cancelledAmount: String(
+          row.cancelled_amount ?? row.cancelledAmount ?? '0',
+        ),
+        orderType: String(row.order_type ?? row.orderType ?? ''),
+        reduceOnly: Boolean(row.reduce_only ?? row.reduceOnly ?? false),
+        orderStatus: 'open',
+        createdAtMs: Number(row.created_at ?? row.createdAt ?? 0),
+        updatedAtMs: Number(row.updated_at ?? row.updatedAt ?? 0),
+      });
+    }
+    return out;
+  };
+
+  /**
+   * REST trade history: `GET /api/v1/trades/history`.
+   * See https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/account/get-trade-history
+   */
+  static getTradeHistory = async (args: {
+    account: string;
+    symbol?: string;
+    startTimeMs?: number;
+    endTimeMs?: number;
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    trades: PacificaTradeHistory[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> => {
+    const url = new URL(`${PACIFICA_API_BASE}/trades/history`);
+    url.searchParams.set('account', args.account);
+    if (args.symbol) url.searchParams.set('symbol', args.symbol);
+    if (args.startTimeMs != null && Number.isFinite(args.startTimeMs)) {
+      url.searchParams.set('start_time', String(Math.floor(args.startTimeMs)));
+    }
+    if (args.endTimeMs != null && Number.isFinite(args.endTimeMs)) {
+      url.searchParams.set('end_time', String(Math.floor(args.endTimeMs)));
+    }
+    if (args.limit != null && args.limit > 0) {
+      url.searchParams.set('limit', String(Math.floor(args.limit)));
+    }
+    if (args.cursor) url.searchParams.set('cursor', args.cursor);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error(`get trade history failed: ${res.status}`);
+    }
+
+    const json = (await res.json()) as Record<string, unknown>;
+    const data = json.data;
+    const trades: PacificaTradeHistory[] = [];
+    if (Array.isArray(data)) {
+      for (const row of data as Record<string, unknown>[]) {
+        const t = PacificaHelper.tradeHistoryFromRestRow(row);
+        if (t) trades.push(t);
+      }
+    }
+
+    const nextRaw = json.next_cursor ?? json.nextCursor;
+    const nextCursor =
+      typeof nextRaw === 'string' && nextRaw.length > 0 ? nextRaw : null;
+    const hasMore = Boolean(json.has_more ?? json.hasMore ?? nextCursor);
+
+    return { trades, nextCursor, hasMore };
+  };
+
+  /**
+   * REST order history: `GET /api/v1/orders/history`.
+   * See https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/orders/get-order-history
+   */
+  static getOrderHistory = async (args: {
+    account: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    orders: PacificaOrderHistory[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> => {
+    const url = new URL(`${PACIFICA_API_BASE}/orders/history`);
+    url.searchParams.set('account', args.account);
+    if (args.limit != null && args.limit > 0) {
+      url.searchParams.set('limit', String(Math.floor(args.limit)));
+    }
+    if (args.cursor) url.searchParams.set('cursor', args.cursor);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error(`get order history failed: ${res.status}`);
+    }
+
+    const json = (await res.json()) as Record<string, unknown>;
+    const data = json.data;
+    const orders: PacificaOrderHistory[] = [];
+    if (Array.isArray(data)) {
+      for (const row of data as Record<string, unknown>[]) {
+        const o = PacificaHelper.orderHistoryFromRestRow(row);
+        if (o) orders.push(o);
+      }
+    }
+
+    const nextRaw = json.next_cursor ?? json.nextCursor;
+    const nextCursor =
+      typeof nextRaw === 'string' && nextRaw.length > 0 ? nextRaw : null;
+    const hasMore = Boolean(json.has_more ?? json.hasMore ?? nextCursor);
+
+    return { orders, nextCursor, hasMore };
+  };
+
+  private static orderHistoryFromRestRow(
+    row: Record<string, unknown>,
+  ): PacificaOrderHistory | null {
+    const orderId = Number(row.order_id ?? row.orderId ?? 0);
+    if (!Number.isFinite(orderId) || orderId <= 0) return null;
+
+    const clientRaw = row.client_order_id ?? row.clientOrderId;
+    const clientOrderId =
+      clientRaw === null || clientRaw === undefined ? null : String(clientRaw);
+
+    const sideRaw = String(row.side ?? '').toLowerCase();
+    const side: 'bid' | 'ask' = sideRaw === 'ask' ? 'ask' : 'bid';
+
+    const initialPrice = String(
+      row.initial_price ?? row.price ?? row.initialPrice ?? '',
+    );
+    const averageFilledPrice = String(
+      row.average_filled_price ?? row.averageFilledPrice ?? '0',
+    );
+
+    const stopRaw = row.stop_price ?? row.stopPrice;
+    let stopPrice: string | null = null;
+    if (stopRaw !== null && stopRaw !== undefined && String(stopRaw) !== '') {
+      stopPrice = String(stopRaw);
+    }
+
+    const parentRaw = row.stop_parent_order_id ?? row.stopParentOrderId;
+    let stopParentOrderId: number | null = null;
+    if (parentRaw !== null && parentRaw !== undefined) {
+      const p = Number(parentRaw);
+      if (Number.isFinite(p) && p > 0) stopParentOrderId = p;
+    }
+
+    const reasonRaw = row.reason;
+    const reason =
+      reasonRaw === null || reasonRaw === undefined ? null : String(reasonRaw);
+
+    const createdAtMs = Number(row.created_at ?? row.createdAt ?? 0);
+    const updatedAtMs = Number(row.updated_at ?? row.updatedAt ?? 0);
+
+    return {
+      orderId,
+      clientOrderId,
+      symbol: String(row.symbol ?? ''),
+      side,
+      initialPrice,
+      averageFilledPrice,
+      amount: String(row.amount ?? '0'),
+      filledAmount: String(row.filled_amount ?? row.filledAmount ?? '0'),
+      orderStatus: String(row.order_status ?? row.orderStatus ?? ''),
+      orderType: String(row.order_type ?? row.orderType ?? ''),
+      stopPrice,
+      stopParentOrderId,
+      reduceOnly: Boolean(row.reduce_only ?? row.reduceOnly ?? false),
+      reason,
+      createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+      updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : 0,
+    };
+  }
+
+  /**
+   * Merge REST-loaded trade history with `account_trades` websocket rows.
+   * Dedupes by `historyId` and sorts newest first.
+   */
+  static mergeTradeHistoryAfterWs(
+    prev: PacificaTradeHistory[],
+    rows: PacificaAccountTradeStreamRow[],
+    account: string,
+  ): PacificaTradeHistory[] {
+    const incoming: PacificaTradeHistory[] = [];
+    for (const row of rows) {
+      if (row.u && row.u !== account) continue;
+      const t = PacificaHelper.tradeHistoryFromAccountTradeWsRow(row);
+      if (t) incoming.push(t);
+    }
+    if (incoming.length === 0) return prev;
+
+    const map = new Map<number, PacificaTradeHistory>();
+    for (const t of prev) {
+      map.set(t.historyId, t);
+    }
+    for (const t of incoming) {
+      map.set(t.historyId, t);
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => b.createdAtMs - a.createdAtMs,
+    );
+  }
+
+  private static tradeHistoryFromRestRow(
+    row: Record<string, unknown>,
+  ): PacificaTradeHistory | null {
+    const historyId = Number(row.history_id ?? 0);
+    if (!Number.isFinite(historyId) || historyId <= 0) return null;
+
+    const clientRaw = row.client_order_id ?? row.clientOrderId;
+    const clientOrderId =
+      clientRaw === null || clientRaw === undefined ? null : String(clientRaw);
+
+    const createdAtMs = Number(row.created_at ?? row.createdAt ?? 0);
+
+    return {
+      historyId,
+      orderId: Number(row.order_id ?? row.orderId ?? 0) || 0,
+      clientOrderId,
+      symbol: String(row.symbol ?? ''),
+      amount: String(row.amount ?? '0'),
+      price: String(row.price ?? '0'),
+      entryPrice: String(row.entry_price ?? row.entryPrice ?? '0'),
+      fee: String(row.fee ?? '0'),
+      pnl: String(row.pnl ?? '0'),
+      eventType: String(row.event_type ?? row.eventType ?? ''),
+      side: String(row.side ?? ''),
+      cause: String(row.cause ?? 'normal'),
+      createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+    };
+  }
+
+  private static tradeHistoryFromAccountTradeWsRow(
+    row: PacificaAccountTradeStreamRow,
+  ): PacificaTradeHistory | null {
+    const historyId = Number(row.h ?? 0);
+    if (!Number.isFinite(historyId) || historyId <= 0) return null;
+
+    const clientRaw = row.I;
+    const clientOrderId =
+      clientRaw === null || clientRaw === undefined ? null : String(clientRaw);
+
+    const createdAtMs = Number(row.t ?? 0);
+
+    return {
+      historyId,
+      orderId: Number(row.i ?? 0) || 0,
+      clientOrderId,
+      symbol: String(row.s ?? ''),
+      amount: String(row.a ?? '0'),
+      price: String(row.p ?? '0'),
+      entryPrice: String(row.o ?? '0'),
+      fee: String(row.f ?? '0'),
+      pnl: String(row.n ?? '0'),
+      eventType: String(row.te ?? ''),
+      side: String(row.ts ?? ''),
+      cause: String(row.tc ?? 'normal'),
+      createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+    };
+  }
+
+  /**
+   * Merge REST-loaded open orders with `account_order_updates` websocket rows.
+   * Removes orders that are filled, cancelled, or rejected; upserts open / partially_filled.
+   */
+  static mergeOpenOrdersAfterWs(
+    prev: PacificaOpenOrder[],
+    rows: PacificaAccountOrderStreamRow[],
+  ): PacificaOpenOrder[] {
+    const map = new Map<number, PacificaOpenOrder>();
+    for (const o of prev) {
+      if (o.orderId > 0) map.set(o.orderId, o);
+    }
+
+    for (const row of rows) {
+      const id = Number(row.i);
+      if (!Number.isFinite(id)) continue;
+
+      const status = String(row.os ?? '').toLowerCase();
+      if (
+        status === 'filled' ||
+        status === 'cancelled' ||
+        status === 'canceled' ||
+        status === 'rejected'
+      ) {
+        map.delete(id);
+        continue;
+      }
+
+      if (status === 'open' || status === 'partially_filled') {
+        const merged = PacificaHelper.openOrderFromWsRow(row, map.get(id));
+        if (merged) map.set(id, merged);
+      }
+    }
+
+    return Array.from(map.values()).sort(
+      (a, b) => b.updatedAtMs - a.updatedAtMs,
+    );
+  }
+
+  private static openOrderFromWsRow(
+    row: PacificaAccountOrderStreamRow,
+    existing?: PacificaOpenOrder,
+  ): PacificaOpenOrder | null {
+    const orderId = Number(row.i);
+    if (!Number.isFinite(orderId) || orderId <= 0) return null;
+
+    const symbol =
+      typeof row.s === 'string' && row.s.length > 0
+        ? row.s
+        : existing?.symbol ?? '';
+    if (!symbol) return null;
+
+    const sideRaw = String(row.d ?? existing?.side ?? 'bid');
+    const side: 'bid' | 'ask' = sideRaw === 'ask' ? 'ask' : 'bid';
+
+    const price = String(row.ip ?? row.p ?? existing?.price ?? '');
+    const initialAmount = String(row.a ?? existing?.initialAmount ?? '0');
+    const filledAmount = String(row.f ?? existing?.filledAmount ?? '0');
+    const cancelledAmount = String(existing?.cancelledAmount ?? '0');
+    const orderType = String(row.ot ?? existing?.orderType ?? 'limit');
+    const reduceOnly = Boolean(
+      row.r !== undefined ? row.r : existing?.reduceOnly ?? false,
+    );
+    const orderStatus = String(row.os ?? existing?.orderStatus ?? 'open');
+
+    let clientOrderId: string | null = existing?.clientOrderId ?? null;
+    if (row.I !== undefined) {
+      clientOrderId = row.I === null ? null : String(row.I);
+    }
+
+    const createdAtMs = Number(row.ct ?? existing?.createdAtMs ?? 0);
+    const updatedAtMs = Number(row.ut ?? existing?.updatedAtMs ?? Date.now());
+
+    return {
+      orderId,
+      clientOrderId,
+      symbol,
+      side,
+      price,
+      initialAmount,
+      filledAmount,
+      cancelledAmount,
+      orderType,
+      reduceOnly,
+      orderStatus,
+      createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+      updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : Date.now(),
+    };
+  }
+
   static marketOrder = async (args: {
     account: string;
     symbol: string;
@@ -1427,6 +2062,90 @@ class PacificaHelper {
       const result = await res.json();
       console.error(`limit order failed: ${res.status} ${result.error}`);
       throw new Error(`limit order failed: ${result.error}`);
+    }
+
+    return res.json().catch(() => null);
+  };
+
+  /**
+   * Cancel an open order (signed). `POST /api/v1/orders/cancel`
+   * Docs: https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/orders/cancel-order
+   */
+  static cancelOrder = async (args: {
+    account: string;
+    symbol: string;
+    /** Exchange order id (use when known). */
+    orderId?: number;
+    /** Client order UUID when cancelling by CLOID instead of `orderId`. */
+    clientOrderId?: string | null;
+    signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+    agentWallet?: string | null;
+  }) => {
+    const hasOid =
+      args.orderId !== undefined &&
+      Number.isFinite(args.orderId) &&
+      args.orderId > 0;
+    const cloid =
+      typeof args.clientOrderId === 'string' &&
+      args.clientOrderId.trim().length > 0
+        ? args.clientOrderId.trim()
+        : '';
+    if (!hasOid && !cloid) {
+      throw new Error('cancel order requires order_id or client_order_id');
+    }
+
+    const timestamp = Date.now();
+    const expiry_window = 30000;
+
+    const data: Record<string, unknown> = {
+      symbol: args.symbol,
+    };
+    if (hasOid) {
+      data.order_id = args.orderId as number;
+    } else {
+      data.client_order_id = cloid;
+    }
+
+    const toSign = sortJsonKeys({
+      timestamp,
+      expiry_window,
+      type: 'cancel_order',
+      data,
+    });
+
+    const compact = JSON.stringify(toSign);
+    const messageBytes = new TextEncoder().encode(compact);
+    const signatureBytes = await args.signMessage(messageBytes);
+    const signature = bs58.encode(signatureBytes);
+
+    const payload: Record<string, unknown> = {
+      account: args.account,
+      signature,
+      timestamp,
+      symbol: args.symbol,
+      agent_wallet: args.agentWallet ?? null,
+      expiry_window,
+    };
+    if (hasOid) {
+      payload.order_id = args.orderId as number;
+    } else {
+      payload.client_order_id = cloid;
+    }
+
+    const res = await fetch(`${PACIFICA_API_BASE}/orders/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}));
+      const msg =
+        result && typeof result === 'object' && 'error' in result
+          ? String((result as { error?: unknown }).error ?? res.status)
+          : `${res.status}`;
+      console.error(`cancel order failed: ${res.status} ${msg}`);
+      throw new Error(`cancel order failed: ${msg}`);
     }
 
     return res.json().catch(() => null);
@@ -1867,6 +2586,58 @@ class PacificaHelper {
           leverage,
           updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : Date.now(),
         });
+      },
+      onError: args.onError,
+    });
+  };
+
+  /**
+   * Live order lifecycle for an account (make, fill, cancel, …).
+   * Docs: `source=account_order_updates`, params include `account`.
+   * See https://pacifica.gitbook.io/docs/api-documentation/api/websocket/subscriptions/account-order-updates
+   */
+  static subscribeAccountOrderUpdates = (args: {
+    account: string;
+    onOrderEvents: (rows: PacificaAccountOrderStreamRow[]) => void;
+    onError?: (err: unknown) => void;
+  }): (() => void) => {
+    if (!wsManager) {
+      args.onError?.(new Error('websocket unavailable (server-side)'));
+      return () => {};
+    }
+
+    return wsManager.subscribeAccountOrderUpdates({
+      account: args.account,
+      onOrderEvents: (rows) => {
+        const filtered = rows.filter((r) => !r.u || r.u === args.account);
+        if (filtered.length === 0) return;
+        args.onOrderEvents(filtered);
+      },
+      onError: args.onError,
+    });
+  };
+
+  /**
+   * Live trade fills for an account.
+   * Docs: `source=account_trades`, params include `account`.
+   * See https://pacifica.gitbook.io/docs/api-documentation/api/websocket/subscriptions/account-trades
+   */
+  static subscribeAccountTrades = (args: {
+    account: string;
+    onTrades: (rows: PacificaAccountTradeStreamRow[]) => void;
+    onError?: (err: unknown) => void;
+  }): (() => void) => {
+    if (!wsManager) {
+      args.onError?.(new Error('websocket unavailable (server-side)'));
+      return () => {};
+    }
+
+    return wsManager.subscribeAccountTrades({
+      account: args.account,
+      onTrades: (rows) => {
+        const filtered = rows.filter((r) => !r.u || r.u === args.account);
+        if (filtered.length === 0) return;
+        args.onTrades(filtered);
       },
       onError: args.onError,
     });

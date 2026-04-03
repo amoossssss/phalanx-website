@@ -3,10 +3,14 @@
 .positions-tab {
   @include column;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 
   .positions-scroll {
     width: 100%;
-    max-height: 220px;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-color: $color-primary-dark transparent;
@@ -49,6 +53,10 @@
   .positions-row {
     @include font-12;
     color: $color-white-70-percent;
+
+    &.is-clickable {
+      cursor: pointer;
+    }
 
     td {
       background: rgba(12, 18, 33, 0.8);
@@ -157,6 +165,21 @@
       color: $color-white-50-percent;
     }
 
+    &.type,
+    &.reduce,
+    &.status {
+      flex: 0.85;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    &.updated {
+      flex: 1.1;
+      text-align: left;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
     &.actions {
       position: sticky;
       right: 0;
@@ -194,6 +217,11 @@
     border: 1px solid $color-primary-dark;
     color: $color-white-50-percent;
     background: transparent;
+  }
+
+  .positions-tab-footer {
+    @include center-item;
+    padding-top: 0.35rem;
   }
 }
 

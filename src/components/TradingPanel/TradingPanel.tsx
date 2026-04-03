@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import CandleChart from '@/components/CandleChart/CandleChart';
 import MarketSelector from '@/components/MarketSelector/MarketSelector';
@@ -21,18 +22,47 @@ type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 type TradingPanelProps = {
   /** Optional override (e.g. cached markets or server-provided) */
   markets?: PacificaMarketInfo[];
+  /** Fallback when `?token=` is missing or invalid (default resolved as BTC in-app). */
   initialMarket?: string;
   onMarketChange?: (market: string) => void;
 };
 
-// TODO: modify route query, '?market=<ticker>'
-// TODO: init the selectedMarket as <ticker>
+const pickListedSymbol = (
+  param: string,
+  options: string[],
+): string | undefined => {
+  const t = param.trim();
+  if (!t) return undefined;
+  const exact = options.find((s) => s === t);
+  if (exact) return exact;
+  const upper = t.toUpperCase();
+  return options.find((s) => s.toUpperCase() === upper);
+};
+
+const resolveMarketFromUrl = (
+  options: string[],
+  tokenParam: string,
+  initialFallback?: string,
+): string => {
+  if (options.length === 0) return '';
+  const fromUrl = pickListedSymbol(tokenParam, options);
+  if (fromUrl) return fromUrl;
+  if (initialFallback) {
+    const fromInit = pickListedSymbol(initialFallback, options);
+    if (fromInit) return fromInit;
+  }
+  const btc = pickListedSymbol('BTC', options);
+  if (btc) return btc;
+  return options[0] ?? '';
+};
+
 const TradingPanel = ({
   markets,
   initialMarket,
   onMarketChange,
 }: TradingPanelProps) => {
   const { userAddress, isLogin } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loadedMarkets, setLoadedMarkets] = useState<PacificaMarketInfo[]>(
     markets ?? [],
   );
@@ -104,17 +134,47 @@ const TradingPanel = ({
     return Array.from(new Set(symbols));
   }, [loadedMarkets]);
 
+  const tokenFromUrl = searchParams.get('token') ?? '';
+
+  const setMarketAndUrl = useCallback(
+    (symbol: string) => {
+      setSelectedMarket(symbol);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('token', symbol);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
   useEffect(() => {
-    if (selectedMarket) return;
-    if (initialMarket) {
-      setSelectedMarket(initialMarket);
-      return;
+    if (marketOptions.length === 0) return;
+
+    const resolved = resolveMarketFromUrl(
+      marketOptions,
+      tokenFromUrl,
+      initialMarket,
+    );
+    if (!resolved) return;
+
+    const urlListed = pickListedSymbol(tokenFromUrl, marketOptions);
+    if (!tokenFromUrl.trim() || !urlListed) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('token', resolved);
+          return next;
+        },
+        { replace: true },
+      );
     }
-    if (marketOptions.length > 0) {
-      const first = marketOptions[0];
-      if (first) setSelectedMarket(first);
-    }
-  }, [marketOptions, selectedMarket, initialMarket]);
+
+    setSelectedMarket((prev) => (prev !== resolved ? resolved : prev));
+  }, [marketOptions, tokenFromUrl, initialMarket, setSearchParams]);
 
   useEffect(() => {
     if (!selectedMarket) return;
@@ -200,7 +260,7 @@ const TradingPanel = ({
             <MarketSelector
               loadedMarkets={loadedMarkets}
               selectedMarket={selectedMarket}
-              setSelectedMarket={setSelectedMarket}
+              setSelectedMarket={setMarketAndUrl}
             />
             <div className="panel-info-item">
               <div className="panel-info-label">{'Price'}</div>
@@ -250,7 +310,11 @@ const TradingPanel = ({
             </div>
           </div>
 
-          <PositionPanel markets={loadedMarkets} />
+          <PositionPanel
+            markets={loadedMarkets}
+            selectedMarket={selectedMarket}
+            onSelectSymbol={setMarketAndUrl}
+          />
         </div>
         <div className="right-section">
           <OrderPanel

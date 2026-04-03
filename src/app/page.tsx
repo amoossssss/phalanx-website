@@ -39,21 +39,19 @@ const Body = () => {
   }, [location.pathname]);
 
   return (
-    <body>
-      <main className={windowSmallClassname}>
-        <div className="app-container">
-          <Header />
-          <div className="view-container">
-            <Routes>
-              <Route path="/squad/:id" element={<SquadSpace />} />
-              <Route path="/squad" element={<Squad />} />
-              <Route path="/trade" element={<Trade />} />
-              <Route path="*" element={<Home />} />
-            </Routes>
-          </div>
+    <main className={windowSmallClassname}>
+      <div className="app-container">
+        <Header />
+        <div className="view-container">
+          <Routes>
+            <Route path="/squad/:id" element={<SquadSpace />} />
+            <Route path="/squad" element={<Squad />} />
+            <Route path="/trade" element={<Trade />} />
+            <Route path="*" element={<Home />} />
+          </Routes>
         </div>
-      </main>
-    </body>
+      </div>
+    </main>
   );
 };
 

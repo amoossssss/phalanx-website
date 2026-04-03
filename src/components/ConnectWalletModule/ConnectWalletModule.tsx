@@ -31,11 +31,11 @@ const ConnectWalletModule = () => {
   const closeDropdown = useCallback(() => setIsDropdownOpen(false), []);
 
   useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
+    const onDocMouseDown = (e: MouseEvent) => {
       if (!rootRef.current) return;
       if (!(e.target instanceof Node)) return;
       if (!rootRef.current.contains(e.target)) closeDropdown();
-    }
+    };
 
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);

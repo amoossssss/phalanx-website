@@ -28,7 +28,7 @@ const nowMilliseconds = () => {
   return Date.now();
 };
 
-function timeToMs(t: Time): number | null {
+const timeToMs = (t: Time): number | null => {
   if (typeof t === 'number') return t * 1000;
   if (typeof t === 'string') {
     const d = new Date(t);
@@ -46,9 +46,9 @@ function timeToMs(t: Time): number | null {
     }
   }
   return null;
-}
+};
 
-function rangeFromResolution(resolution: CandleChartProps['resolution']) {
+const rangeFromResolution = (resolution: CandleChartProps['resolution']) => {
   // Simple defaults: enough candles for a decent view.
   switch (resolution) {
     case '1m':
@@ -67,7 +67,7 @@ function rangeFromResolution(resolution: CandleChartProps['resolution']) {
     default:
       return 1000 * 60 * 60 * 24 * 30; // 30d
   }
-}
+};
 
 const CandleChart = ({
   market,

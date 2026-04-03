@@ -122,7 +122,7 @@ const Trade = () => {
         />
       )}
 
-      <TradingPanel markets={markets} initialMarket="BTC" />
+      <TradingPanel markets={markets} />
     </div>
   );
 };

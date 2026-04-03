@@ -8,6 +8,7 @@
   box-sizing: border-box;
   width: 100%;
   flex: 1;
+  overflow: hidden;
 
   .chart-header {
     @include row;
@@ -76,13 +77,17 @@
   .panel-content {
     @include row;
     flex: 1;
+    min-height: 0;
 
     .left-section {
+      @include column;
       flex: 1;
+      min-height: 0;
 
       .top-section {
         @include row;
         align-items: stretch;
+        flex: 0 0 auto;
 
         .chart-canvas {
           @include center-item;
