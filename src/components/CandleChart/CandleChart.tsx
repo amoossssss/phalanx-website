@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CandlestickSeries,
-  ColorType,
   createChart,
   type IChartApi,
   type ISeriesApi,
@@ -12,6 +11,7 @@ import {
   TickMarkType,
 } from 'lightweight-charts';
 
+import CandleChartHelper from '@/utils/helpers/CandleChartHelper';
 import PacificaHelper from '@/utils/helpers/PacificaHelper';
 
 import './CandleChart.scss';
@@ -24,55 +24,10 @@ type CandleChartProps = {
   pricePrecision?: number;
 };
 
-const nowMilliseconds = () => {
-  return Date.now();
-};
-
-const timeToMs = (t: Time): number | null => {
-  if (typeof t === 'number') return t * 1000;
-  if (typeof t === 'string') {
-    const d = new Date(t);
-    const ms = d.getTime();
-    return Number.isFinite(ms) ? ms : null;
-  }
-  if (t && typeof t === 'object') {
-    const bd = t as { year?: number; month?: number; day?: number };
-    if (
-      typeof bd.year === 'number' &&
-      typeof bd.month === 'number' &&
-      typeof bd.day === 'number'
-    ) {
-      return Date.UTC(bd.year, bd.month - 1, bd.day);
-    }
-  }
-  return null;
-};
-
-const rangeFromResolution = (resolution: CandleChartProps['resolution']) => {
-  // Simple defaults: enough candles for a decent view.
-  switch (resolution) {
-    case '1m':
-      return 1000 * 60 * 60 * 6; // 6h
-    case '5m':
-      return 1000 * 60 * 60 * 24 * 3; // 3d
-    case '15m':
-      return 1000 * 60 * 60 * 24 * 7; // 7d
-    case '4h':
-      return 1000 * 60 * 60 * 24 * 90; // 90d
-    case '1d':
-      return 1000 * 60 * 60 * 24 * 365; // 1y
-    // case '1w':
-    //   return 1000 * 60 * 60 * 24 * 365 * 3; // 3y
-    case '1h':
-    default:
-      return 1000 * 60 * 60 * 24 * 30; // 30d
-  }
-};
-
 const CandleChart = ({
   market,
   resolution = '1h',
-  height = 420,
+  height = 460,
   pricePrecision = 2,
 }: CandleChartProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -82,8 +37,8 @@ const CandleChart = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const timeRange = useMemo(() => {
-    const to = nowMilliseconds();
-    const from = to - rangeFromResolution(resolution);
+    const to = CandleChartHelper.nowMilliseconds();
+    const from = to - CandleChartHelper.rangeFromResolution(resolution);
     return { from, to };
   }, [resolution]);
 
@@ -97,26 +52,13 @@ const CandleChart = ({
     const chart = createChart(containerRef.current, {
       height: initialHeight,
       width: initialWidth,
-      layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: 'rgba(255,255,255,0.7)',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255,255,255,0.08)' },
-        horzLines: { color: 'rgba(255,255,255,0.08)' },
-      },
-      timeScale: { borderColor: 'rgba(255,255,255,0.12)' },
-      rightPriceScale: { borderColor: 'rgba(255,255,255,0.12)' },
+      ...CandleChartHelper.chartConfig,
     });
 
-    const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#8eff71',
-      downColor: '#ff51fa',
-      borderUpColor: '#8eff71',
-      borderDownColor: '#ff51fa',
-      wickUpColor: '#8eff71',
-      wickDownColor: '#ff51fa',
-    });
+    const series = chart.addSeries(
+      CandlestickSeries,
+      CandleChartHelper.seriesStyling,
+    );
 
     chartRef.current = chart;
     seriesRef.current = series;
@@ -170,7 +112,7 @@ const CandleChart = ({
           secondsVisible: false,
           tickMarkFormatter: (t: Time, _type: TickMarkType, locale: string) => {
             if (!isLowerTf) return null;
-            const ms = timeToMs(t);
+            const ms = CandleChartHelper.timeToMs(t);
             if (ms === null) return null;
             return new Intl.DateTimeFormat(locale, {
               hour: '2-digit',

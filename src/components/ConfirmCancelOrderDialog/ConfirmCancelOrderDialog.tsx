@@ -74,7 +74,13 @@ const ConfirmCancelOrderDialog = ({
   const sideLabel = PositionHelper.sideTag(order.side);
 
   return (
-    <dialog className="confirm-cancel-order-dialog" open>
+    <dialog
+      className="confirm-cancel-order-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{'<Cancel_order>'}</div>
 

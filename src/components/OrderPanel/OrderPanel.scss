@@ -123,19 +123,19 @@
   .quick {
     @include row;
     gap: 0.6rem;
-  }
 
-  .quick-btn {
-    @include center-item;
-    @include font-12;
-    padding: 0.5rem 0.7rem;
-    border: 1px solid $color-primary-dark;
-    background: transparent;
-    color: $color-white-70-percent;
-    flex: 1;
+    .quick-btn {
+      @include center-item;
+      @include font-12;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid $color-primary-dark;
+      background: transparent;
+      color: $color-white-70-percent;
+      flex: 1;
 
-    &:hover {
-      border-color: $color-primary;
+      &:hover {
+        border-color: $color-primary;
+      }
     }
   }
 
@@ -241,5 +241,21 @@
     margin-top: auto;
     border-top: 1px solid $color-primary-dark;
     padding-top: 0.8rem;
+  }
+}
+
+.window-small {
+  .order-panel {
+    box-sizing: border-box;
+
+    .quick {
+      @include row;
+      gap: 0.6rem;
+
+      .quick-btn {
+        font-size: 1.1rem;
+        padding: 0.5rem 0;
+      }
+    }
   }
 }

@@ -58,6 +58,10 @@
       background: $color-neutral;
       z-index: 999;
 
+      &.timeframe--hidden {
+        display: none;
+      }
+
       .tf-btn {
         @include font-12;
         padding: 0.4rem 0.6rem;
@@ -83,6 +87,7 @@
       @include column;
       flex: 1;
       min-height: 0;
+      width: calc(100vw - 240px);
 
       .top-section {
         @include row;
@@ -116,10 +121,23 @@
 
 .window-small {
   .trading-panel {
-    .chart-shell {
-      .chart-canvas {
-        height: 46rem;
+    .left-section {
+      @include hide-scrollbar;
+      overflow: auto;
+      overscroll-behavior: none;
+      width: 100svw;
+
+      .top-section {
+        .chart-canvas {
+          height: 30rem;
+        }
       }
+    }
+
+    .side-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid $color-primary-dark;
     }
   }
 }

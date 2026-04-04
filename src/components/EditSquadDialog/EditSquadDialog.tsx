@@ -59,7 +59,13 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
   };
 
   return (
-    <dialog className="edit-squad-dialog" open>
+    <dialog
+      className="edit-squad-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{'<Edit_Squad>'}</div>
 

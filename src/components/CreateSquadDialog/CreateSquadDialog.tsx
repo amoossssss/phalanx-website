@@ -50,7 +50,13 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
   };
 
   return (
-    <dialog className="create-squad-dialog" open>
+    <dialog
+      className="create-squad-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{'<Create_Squad>'}</div>
 

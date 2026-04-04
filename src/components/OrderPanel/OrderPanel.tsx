@@ -14,6 +14,7 @@ import PacificaHelper, {
 import PositionHelper from '@/utils/helpers/PositionHelper';
 import StringHelper from '@/utils/helpers/StringHelper';
 import useNotification from '@/utils/hooks/useNotification';
+import useWindowSize from '@/utils/hooks/useWindowSize';
 import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './OrderPanel.scss';
@@ -57,6 +58,7 @@ const OrderPanel = ({
   const { userAddress, isLogin } = useAuth();
   const { signMessage } = useWallet();
   const { snackbar } = useNotification();
+  const { isWindowSmall } = useWindowSize();
 
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [side, setSide] = useState<OrderSide>('buy');
@@ -110,13 +112,7 @@ const OrderPanel = ({
     if (closingShort && pos.side !== 'ask') return 0;
     if (!Number.isFinite(pos.amount) || pos.amount <= 0) return 0;
     return PositionHelper.positionNotionalUsd(pos.amount, mark) ?? 0;
-  }, [
-    reduceOnly,
-    positionForMarket,
-    side,
-    effectivePrice,
-    marketPrice,
-  ]);
+  }, [reduceOnly, positionForMarket, side, effectivePrice, marketPrice]);
 
   const applyUsdAmountToInputs = useCallback(
     (usdRaw: number) => {
@@ -617,22 +613,47 @@ const OrderPanel = ({
               : '—'}
           </div>
         </div>
-        <div className="row">
-          <div className="label">{'Taker_Maker_fee'}</div>
-          <div className="value">
-            {accountInfo
-              ? `${parseFloat(
-                  (accountInfo.takerFee * 100).toFixed(4),
-                ).toString()}%`
-              : '—'}
-            {' / '}
-            {accountInfo
-              ? `${parseFloat(
-                  (accountInfo.makerFee * 100).toFixed(4),
-                ).toString()}%`
-              : '—'}
+        {isWindowSmall ? (
+          <>
+            <div className="row">
+              <div className="label">{'Taker_fee'}</div>
+              <div className="value">
+                {accountInfo
+                  ? `${parseFloat(
+                      (accountInfo.takerFee * 100).toFixed(4),
+                    ).toString()}%`
+                  : '—'}
+              </div>
+            </div>
+            <div className="row">
+              <div className="label">{'Maker_fee'}</div>
+              <div className="value">
+                {accountInfo
+                  ? `${parseFloat(
+                      (accountInfo.makerFee * 100).toFixed(4),
+                    ).toString()}%`
+                  : '—'}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="row">
+            <div className="label">{'Taker_Maker_fee'}</div>
+            <div className="value">
+              {accountInfo
+                ? `${parseFloat(
+                    (accountInfo.takerFee * 100).toFixed(4),
+                  ).toString()}%`
+                : '—'}
+              {' / '}
+              {accountInfo
+                ? `${parseFloat(
+                    (accountInfo.makerFee * 100).toFixed(4),
+                  ).toString()}%`
+                : '—'}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

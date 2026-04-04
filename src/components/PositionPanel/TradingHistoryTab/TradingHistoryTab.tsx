@@ -62,9 +62,7 @@ const TradingHistoryTab = ({
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
-  const symbolFilter = showAll
-    ? undefined
-    : selectedMarket.trim() || undefined;
+  const symbolFilter = showAll ? undefined : selectedMarket.trim() || undefined;
 
   useEffect(() => {
     const account = userAddress;

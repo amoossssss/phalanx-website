@@ -38,7 +38,13 @@ const UpdateAliasDialog = ({ close }: UpdateAliasDialogType) => {
   };
 
   return (
-    <dialog className="update-alias-dialog" open>
+    <dialog
+      className="update-alias-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{'<Update_Alias>'}</div>
 

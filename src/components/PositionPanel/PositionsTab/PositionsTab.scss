@@ -239,3 +239,23 @@
   color: $color-white-50-percent;
   margin: auto;
 }
+
+.window-small {
+  .positions-tab {
+    .positions-row {
+      &:hover td {
+        background: initial;
+      }
+    }
+
+    .positions-row {
+      td.col.actions {
+        background: rgba(12, 18, 33, 1);
+      }
+    }
+
+    .positions-row:hover td.col.actions {
+      background: rgba(12, 18, 33, 1);
+    }
+  }
+}

@@ -82,7 +82,10 @@ const PositionPanel = ({
                 checked={showAllHistory}
                 onChange={(e) => setShowAllHistory(e.target.checked)}
               />
-              <span className="position-panel-show-all-box" aria-hidden="true" />
+              <span
+                className="position-panel-show-all-box"
+                aria-hidden="true"
+              />
             </span>
           </label>
         ) : null}

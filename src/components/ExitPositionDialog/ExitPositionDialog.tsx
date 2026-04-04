@@ -230,7 +230,13 @@ const ExitPositionDialog = ({
         })}`;
 
   return (
-    <dialog className="exit-position-dialog" open>
+    <dialog
+      className="exit-position-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{`<${sideLabel}_${position.symbol}_Exit>`}</div>
 

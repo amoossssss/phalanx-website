@@ -109,6 +109,8 @@
 
 .window-small {
   .orderbook {
+    min-width: initial;
+
     .orderbook-table {
       grid-template-columns: 1fr;
     }

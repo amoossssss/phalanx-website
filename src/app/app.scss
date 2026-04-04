@@ -6,6 +6,7 @@ html {
   font-weight: $font-weight-normal;
   background: $color-neutral;
   color: $color-white01;
+  overscroll-behavior: none;
 }
 
 body {
@@ -15,6 +16,7 @@ body {
   overflow: auto !important;
   padding: 0 !important;
   height: 100svh;
+  overscroll-behavior: none;
 }
 
 main {

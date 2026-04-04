@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import CandleChart from '@/components/CandleChart/CandleChart';
@@ -9,21 +9,21 @@ import PositionPanel from '@/components/PositionPanel/PositionPanel';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
-import { useAuth } from '@/utils/contexts/AuthContext';
+import Constant from '@/utils/constants/Constants';
 import PacificaHelper, {
   type PacificaAccountInfo,
   type PacificaMarketInfo,
 } from '@/utils/helpers/PacificaHelper';
+import useWindowSize from '@/utils/hooks/useWindowSize';
+import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './TradingPanel.scss';
 
 type Timeframe = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 
 type TradingPanelProps = {
-  /** Optional override (e.g. cached markets or server-provided) */
-  markets?: PacificaMarketInfo[];
-  /** Fallback when `?token=` is missing or invalid (default resolved as BTC in-app). */
-  initialMarket?: string;
+  markets?: PacificaMarketInfo[] /** Optional override (e.g. cached markets or server-provided) */;
+  initialMarket?: string /** Fallback when `?token=` is missing or invalid (default resolved as BTC in-app). */;
   onMarketChange?: (market: string) => void;
 };
 
@@ -62,7 +62,10 @@ const TradingPanel = ({
   onMarketChange,
 }: TradingPanelProps) => {
   const { userAddress, isLogin } = useAuth();
+  const { isWindowSmall } = useWindowSize();
+
   const [searchParams, setSearchParams] = useSearchParams();
+
   const [loadedMarkets, setLoadedMarkets] = useState<PacificaMarketInfo[]>(
     markets ?? [],
   );
@@ -72,6 +75,8 @@ const TradingPanel = ({
   const [accountInfo, setAccountInfo] = useState<PacificaAccountInfo | null>(
     null,
   );
+  const chartAreaRef = useRef<HTMLDivElement | null>(null);
+  const [showTimeframe, setShowTimeframe] = useState(true);
 
   const selectedMarketData = useMemo(() => {
     if (!loadedMarkets) return null;
@@ -252,6 +257,29 @@ const TradingPanel = ({
     };
   }, [isLogin, userAddress]);
 
+  useEffect(() => {
+    const el = chartAreaRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        setShowTimeframe(
+          entry.intersectionRect.height >= Constant.CHART_MIN_VISIBLE_PX,
+        );
+      },
+      {
+        root: null,
+        rootMargin: '0px',
+        threshold: Array.from({ length: 101 }, (_, i) => i / 100),
+      },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [selectedMarket]);
+
   return (
     <div className="trading-panel">
       <div className="chart-header">
@@ -275,7 +303,9 @@ const TradingPanel = ({
             </div>
           </div>
         </div>
-        <div className="timeframe">
+        <div
+          className={`timeframe ${showTimeframe ? '' : 'timeframe--hidden'}`}
+        >
           {(['1m', '5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
             <ButtonDiv
               key={tf}
@@ -290,16 +320,29 @@ const TradingPanel = ({
       <div className="panel-content">
         <div className="left-section">
           <div className="top-section">
-            <div className="chart-canvas">
+            <div className="chart-canvas" ref={chartAreaRef}>
               <CandleChart
                 key={selectedMarket}
                 market={selectedMarket}
                 resolution={timeframe}
-                height={460}
+                height={isWindowSmall ? 300 : 460}
                 pricePrecision={pricePrecision}
               />
             </div>
 
+            {!isWindowSmall && (
+              <div className="side-panels">
+                <OrderBook
+                  market={selectedMarket}
+                  aggLevel={1}
+                  pricePrecision={pricePrecision}
+                  maxLevels={7}
+                />
+              </div>
+            )}
+          </div>
+
+          {isWindowSmall && (
             <div className="side-panels">
               <OrderBook
                 market={selectedMarket}
@@ -307,8 +350,15 @@ const TradingPanel = ({
                 pricePrecision={pricePrecision}
                 maxLevels={7}
               />
+              <OrderPanel
+                market={selectedMarket}
+                lotSize={lotSize}
+                availableBalance={accountInfo?.availableToSpend ?? 0}
+                maxLeverage={maxLeverage}
+                accountInfo={accountInfo}
+              />
             </div>
-          </div>
+          )}
 
           <PositionPanel
             markets={loadedMarkets}
@@ -316,15 +366,17 @@ const TradingPanel = ({
             onSelectSymbol={setMarketAndUrl}
           />
         </div>
-        <div className="right-section">
-          <OrderPanel
-            market={selectedMarket}
-            lotSize={lotSize}
-            availableBalance={accountInfo?.availableToSpend ?? 0}
-            maxLeverage={maxLeverage}
-            accountInfo={accountInfo}
-          />
-        </div>
+        {!isWindowSmall && (
+          <div className="right-section">
+            <OrderPanel
+              market={selectedMarket}
+              lotSize={lotSize}
+              availableBalance={accountInfo?.availableToSpend ?? 0}
+              maxLeverage={maxLeverage}
+              accountInfo={accountInfo}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -82,7 +82,13 @@ const UpdateLeverageDialog = ({
   };
 
   return (
-    <dialog className="update-leverage-dialog" open>
+    <dialog
+      className="update-leverage-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{`<${symbol}_Leverage>`}</div>
 

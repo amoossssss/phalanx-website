@@ -22,7 +22,13 @@ const BuilderCodeDialog = ({
   onClose,
 }: BuilderCodeDialogProps) => {
   return (
-    <dialog className="builder-code-dialog" open>
+    <dialog
+      className="builder-code-dialog"
+      open
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="dialog-content">
         <div className="dialog-title">{'<Builder_Code_Auth>'}</div>
 

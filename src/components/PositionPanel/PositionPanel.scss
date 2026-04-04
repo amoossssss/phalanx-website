@@ -123,13 +123,32 @@
 
   .position-panel-body {
     @include column;
-    min-height: 14rem;
     flex: 1;
     min-height: 0;
 
     .empty {
       @include font-14;
       color: $color-white-50-percent;
+    }
+  }
+}
+
+.window-small {
+  .position-panel {
+    .position-panel-tab-row {
+      padding-right: 0;
+
+      .position-panel-tabs {
+        overflow: auto;
+      }
+
+      .position-panel-show-all {
+        padding: 0 1rem 0.75rem;
+      }
+    }
+
+    .position-panel-body {
+      min-height: 22rem;
     }
   }
 }
