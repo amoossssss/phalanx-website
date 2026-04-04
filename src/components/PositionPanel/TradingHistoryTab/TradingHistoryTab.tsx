@@ -43,13 +43,16 @@ const pnlCssClass = (pnl: string): string => {
 };
 
 type TradingHistoryTabProps = {
-  /** When set, REST and websocket rows are limited to this market symbol. */
+  /** When set, REST and websocket rows are limited to this market symbol (unless `showAll`). */
   selectedMarket?: string;
+  /** When true, load and merge trades for all symbols. */
+  showAll?: boolean;
   onSelectSymbol?: (symbol: string) => void;
 };
 
 const TradingHistoryTab = ({
   selectedMarket = '',
+  showAll = false,
   onSelectSymbol,
 }: TradingHistoryTabProps) => {
   const { userAddress, isLogin } = useAuth();
@@ -59,7 +62,9 @@ const TradingHistoryTab = ({
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
-  const symbolFilter = selectedMarket.trim() || undefined;
+  const symbolFilter = showAll
+    ? undefined
+    : selectedMarket.trim() || undefined;
 
   useEffect(() => {
     const account = userAddress;

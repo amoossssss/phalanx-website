@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 import UpdateLeverageDialog from '@/components/UpdateLeverageDialog/UpdateLeverageDialog';
@@ -9,7 +9,9 @@ import Constants from '@/utils/constants/Constants';
 import EnvVariables from '@/utils/constants/EnvVariables';
 import PacificaHelper, {
   type PacificaAccountInfo,
+  type PacificaPosition,
 } from '@/utils/helpers/PacificaHelper';
+import PositionHelper from '@/utils/helpers/PositionHelper';
 import StringHelper from '@/utils/helpers/StringHelper';
 import useNotification from '@/utils/hooks/useNotification';
 import { useAuth } from '@/utils/contexts/AuthContext';
@@ -37,6 +39,7 @@ type OrderPanelProps = {
     leverage: number;
     price?: number;
     amount: number;
+    reduceOnly: boolean;
   }) => void;
 };
 
@@ -64,6 +67,8 @@ const OrderPanel = ({
   const [marketPrice, setMarketPrice] = useState<number | null>(null);
   const [isOrderLoading, setIsOrderLoading] = useState(false);
   const [isLeverageDialogOpen, setIsLeverageDialogOpen] = useState(false);
+  const [reduceOnly, setReduceOnly] = useState(false);
+  const [positions, setPositions] = useState<PacificaPosition[]>([]);
 
   // const amountNum = useMemo(() => parseNumber(amount), [amount]);
   const tokenAmountNum = useMemo(
@@ -84,6 +89,77 @@ const OrderPanel = ({
     if (!effectivePrice || effectivePrice <= 0) return 0;
     return tokenAmountNum * effectivePrice;
   }, [effectivePrice, tokenAmountNum]);
+
+  const positionForMarket = useMemo(() => {
+    if (!market) return null;
+    return positions.find((p) => p.symbol === market) ?? null;
+  }, [market, positions]);
+
+  /**
+   * When reduce-only: max USD size is position notional at the working price (mark / limit).
+   * Sell reduces a long; buy reduces a short.
+   */
+  const maxReduceUsd = useMemo((): number | null => {
+    if (!reduceOnly) return null;
+    const pos = positionForMarket;
+    const mark = effectivePrice ?? marketPrice;
+    if (!pos || !mark || mark <= 0) return 0;
+    const closingLong = side === 'sell';
+    const closingShort = side === 'buy';
+    if (closingLong && pos.side !== 'bid') return 0;
+    if (closingShort && pos.side !== 'ask') return 0;
+    if (!Number.isFinite(pos.amount) || pos.amount <= 0) return 0;
+    return PositionHelper.positionNotionalUsd(pos.amount, mark) ?? 0;
+  }, [
+    reduceOnly,
+    positionForMarket,
+    side,
+    effectivePrice,
+    marketPrice,
+  ]);
+
+  const applyUsdAmountToInputs = useCallback(
+    (usdRaw: number) => {
+      if (!effectivePrice || effectivePrice <= 0) {
+        setTokenAmount('');
+        return;
+      }
+      let usd = usdRaw;
+      if (maxReduceUsd !== null) {
+        if (maxReduceUsd <= 0) {
+          setAmount('');
+          setTokenAmount('');
+          return;
+        }
+        usd = Math.min(usd, maxReduceUsd);
+      }
+      if (usd <= 0) {
+        setAmount('');
+        setTokenAmount('');
+        return;
+      }
+      setAmount(
+        usd.toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        }),
+      );
+      let tokens = usd / effectivePrice;
+      if (lotSize && lotSize > 0) {
+        const lots = Math.floor(tokens / lotSize);
+        if (lots <= 0) {
+          setTokenAmount('');
+          return;
+        }
+        tokens = lots * lotSize;
+      }
+      setTokenAmount(
+        tokens.toLocaleString(undefined, {
+          maximumFractionDigits: 6,
+        }),
+      );
+    },
+    [effectivePrice, lotSize, maxReduceUsd],
+  );
 
   const feeRate = useMemo(() => {
     if (!accountInfo) return 0;
@@ -114,6 +190,10 @@ const OrderPanel = ({
     if (orderType === 'limit') {
       if (!priceNum || priceNum <= 0) return false;
     }
+    if (maxReduceUsd !== null) {
+      if (maxReduceUsd <= 0) return false;
+      if (notionalUsd > maxReduceUsd + 1e-6) return false;
+    }
     // Reserve estimated fee from effective buying power (available balance * leverage).
     if (notionalUsd > 0 && feeEstimate > 0) {
       const effectiveBuyingPower = availableBalance * leverage;
@@ -125,6 +205,7 @@ const OrderPanel = ({
     feeEstimate,
     isTokenAmountValid,
     leverage,
+    maxReduceUsd,
     notionalUsd,
     orderType,
     priceNum,
@@ -189,6 +270,42 @@ const OrderPanel = ({
   }, [isLogin, market, maxLeverage, userAddress]);
 
   useEffect(() => {
+    const account = userAddress;
+    if (!isLogin || !account) {
+      setPositions([]);
+      return;
+    }
+
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+      try {
+        const initial = await PacificaHelper.getPositions({ account });
+        if (!cancelled) setPositions(initial);
+      } catch (e) {
+        console.warn('order panel positions fetch failed', e);
+      }
+    })();
+
+    unsubscribe = PacificaHelper.subscribeAccountPositions({
+      account,
+      onPositions: (next) => {
+        if (cancelled) return;
+        setPositions(next);
+      },
+      onError: (e) => {
+        console.warn('order panel account positions websocket error', e);
+      },
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [isLogin, userAddress]);
+
+  useEffect(() => {
     if (!market) return;
     const unsubscribe = PacificaHelper.subscribeLastPrice({
       market,
@@ -222,6 +339,25 @@ const OrderPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderType, priceNum]);
 
+  useEffect(() => {
+    if (!reduceOnly || maxReduceUsd === null) return;
+    if (maxReduceUsd <= 0) {
+      setAmount('');
+      setTokenAmount('');
+      return;
+    }
+    if (!effectivePrice || effectivePrice <= 0) return;
+    const usd = StringHelper.parseNumber(amount);
+    if (!usd || usd <= maxReduceUsd + 1e-9) return;
+    applyUsdAmountToInputs(usd);
+  }, [
+    amount,
+    applyUsdAmountToInputs,
+    effectivePrice,
+    maxReduceUsd,
+    reduceOnly,
+  ]);
+
   const handlePlaceOrder = () => {
     if (!canSubmit) return;
     if (!isLogin || !userAddress || !signMessage) {
@@ -241,7 +377,7 @@ const OrderPanel = ({
           side: side === 'buy' ? 'bid' : 'ask',
           amount: String(tokenAmountNum),
           slippagePercent: '0.5',
-          reduceOnly: false,
+          reduceOnly,
           builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
           signMessage,
         })
@@ -267,7 +403,7 @@ const OrderPanel = ({
           price: priceNum,
           amount: String(tokenAmountNum),
           tif: 'GTC',
-          reduceOnly: false,
+          reduceOnly,
           builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
           signMessage,
         })
@@ -293,6 +429,7 @@ const OrderPanel = ({
       leverage,
       price: orderType === 'limit' ? priceNum ?? undefined : undefined,
       amount: tokenAmountNum ?? 0,
+      reduceOnly,
     });
   };
 
@@ -377,20 +514,7 @@ const OrderPanel = ({
             }
             const usd = StringHelper.parseNumber(next);
             if (usd && usd > 0) {
-              let tokens = usd / effectivePrice;
-              if (lotSize && lotSize > 0) {
-                const lots = Math.floor(tokens / lotSize);
-                if (lots <= 0) {
-                  setTokenAmount('');
-                  return;
-                }
-                tokens = lots * lotSize;
-              }
-              setTokenAmount(
-                tokens.toLocaleString(undefined, {
-                  maximumFractionDigits: 6,
-                }),
-              );
+              applyUsdAmountToInputs(usd);
             } else {
               setTokenAmount('');
             }
@@ -403,27 +527,12 @@ const OrderPanel = ({
               key={pct}
               className="quick-btn"
               onClick={() => {
-                const v = (availableBalance * pct * leverage) / 100;
-                setAmount(
-                  v.toLocaleString(undefined, {
-                    maximumFractionDigits: 2,
-                  }),
-                );
-                if (!effectivePrice || effectivePrice <= 0) return;
-                let tokens = v / effectivePrice;
-                if (lotSize && lotSize > 0) {
-                  const lots = Math.floor(tokens / lotSize);
-                  if (lots <= 0) {
-                    setTokenAmount('');
-                    return;
-                  }
-                  tokens = lots * lotSize;
-                }
-                setTokenAmount(
-                  tokens.toLocaleString(undefined, {
-                    maximumFractionDigits: 6,
-                  }),
-                );
+                const v = reduceOnly
+                  ? maxReduceUsd !== null && maxReduceUsd > 0
+                    ? (maxReduceUsd * pct) / 100
+                    : 0
+                  : (availableBalance * pct * leverage) / 100;
+                applyUsdAmountToInputs(v);
               }}
             >
               {`${pct}%`}
@@ -445,6 +554,19 @@ const OrderPanel = ({
           readOnly={true}
         />
       </div>
+
+      <label className="reduce-only-row">
+        <span className="reduce-only-label">{'Reduce_only'}</span>
+        <span className="reduce-only-control">
+          <input
+            type="checkbox"
+            className="reduce-only-input"
+            checked={reduceOnly}
+            onChange={(e) => setReduceOnly(e.target.checked)}
+          />
+          <span className="reduce-only-box" aria-hidden="true" />
+        </span>
+      </label>
 
       <div className="row">
         <div className="label">{'Est_fee'}</div>

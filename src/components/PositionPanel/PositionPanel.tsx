@@ -34,38 +34,58 @@ const PositionPanel = ({
   onSelectSymbol,
 }: PositionPanelProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>('positions');
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const activeLabel = useMemo(
     () => TABS.find((t) => t.key === activeTab)?.label ?? 'Positions',
     [activeTab],
   );
 
+  const showHistoryFilters =
+    activeTab === 'tradeHistory' || activeTab === 'orderHistory';
+
   return (
     <div className="position-panel">
-      <div className="position-panel-tabs" role="tablist">
-        {TABS.map((t) => (
-          <ButtonDiv
-            key={t.key}
-            role="tab"
-            aria-selected={t.key === activeTab}
-            className={t.key === activeTab ? 'tab active' : 'tab'}
-            onClick={() => {
-              setActiveTab(t.key);
-              if (
-                (t.key === 'positions' ||
-                  t.key === 'openOrders' ||
-                  t.key === 'tradeHistory' ||
-                  t.key === 'orderHistory') &&
-                selectedMarket &&
-                onSelectSymbol
-              ) {
-                onSelectSymbol(selectedMarket);
-              }
-            }}
-          >
-            {t.label}
-          </ButtonDiv>
-        ))}
+      <div className="position-panel-tab-row">
+        <div className="position-panel-tabs" role="tablist">
+          {TABS.map((t) => (
+            <ButtonDiv
+              key={t.key}
+              role="tab"
+              aria-selected={t.key === activeTab}
+              className={t.key === activeTab ? 'tab active' : 'tab'}
+              onClick={() => {
+                setActiveTab(t.key);
+                if (
+                  (t.key === 'positions' ||
+                    t.key === 'openOrders' ||
+                    t.key === 'tradeHistory' ||
+                    t.key === 'orderHistory') &&
+                  selectedMarket &&
+                  onSelectSymbol
+                ) {
+                  onSelectSymbol(selectedMarket);
+                }
+              }}
+            >
+              {t.label}
+            </ButtonDiv>
+          ))}
+        </div>
+        {showHistoryFilters ? (
+          <label className="position-panel-show-all">
+            <span className="position-panel-show-all-label">{'show_all'}</span>
+            <span className="position-panel-show-all-control">
+              <input
+                type="checkbox"
+                className="position-panel-show-all-input"
+                checked={showAllHistory}
+                onChange={(e) => setShowAllHistory(e.target.checked)}
+              />
+              <span className="position-panel-show-all-box" aria-hidden="true" />
+            </span>
+          </label>
+        ) : null}
       </div>
 
       <div className="position-panel-body" role="tabpanel">
@@ -76,11 +96,13 @@ const PositionPanel = ({
         ) : activeTab === 'tradeHistory' ? (
           <TradingHistoryTab
             selectedMarket={selectedMarket}
+            showAll={showAllHistory}
             onSelectSymbol={onSelectSymbol}
           />
         ) : activeTab === 'orderHistory' ? (
           <OrderHistoryTab
             selectedMarket={selectedMarket}
+            showAll={showAllHistory}
             onSelectSymbol={onSelectSymbol}
           />
         ) : (

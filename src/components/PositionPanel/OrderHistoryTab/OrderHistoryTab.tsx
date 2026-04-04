@@ -25,11 +25,14 @@ const formatReason = (reason: string | null): string => {
 type OrderHistoryTabProps = {
   /** Client-side filter when set (REST has no `symbol` query on this endpoint). */
   selectedMarket?: string;
+  /** When true, show orders for all symbols. */
+  showAll?: boolean;
   onSelectSymbol?: (symbol: string) => void;
 };
 
 const OrderHistoryTab = ({
   selectedMarket = '',
+  showAll = false,
   onSelectSymbol,
 }: OrderHistoryTabProps) => {
   const { userAddress, isLogin } = useAuth();
@@ -113,9 +116,9 @@ const OrderHistoryTab = ({
 
   const rows = useMemo(() => {
     const sorted = [...orders].sort((a, b) => b.updatedAtMs - a.updatedAtMs);
-    if (!symbolFilter) return sorted;
+    if (showAll || !symbolFilter) return sorted;
     return sorted.filter((o) => o.symbol === symbolFilter);
-  }, [orders, symbolFilter]);
+  }, [orders, symbolFilter, showAll]);
 
   if (!isLogin || !userAddress) {
     return (
