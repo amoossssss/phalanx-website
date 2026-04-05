@@ -9,6 +9,7 @@ import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
 import ApiService from '@/utils/api/ApiService';
 import Media from '@/utils/constants/Media';
 import useNotification from '@/utils/hooks/useNotification';
+import { useUser } from '@/utils/contexts/UserContext';
 
 import './CreateSquadDialog.scss';
 
@@ -20,6 +21,7 @@ type CreateSquadDialogType = {
 
 const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
   const { snackbar } = useNotification();
+  const { refreshUser } = useUser();
 
   const [squadName, setSquadName] = useState('');
   const [squadColor, setSquadColor] = useState('#8ff5ff');
@@ -40,7 +42,8 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
 
     ApiService.squad
       .createSquad(formData)
-      .then(() => {
+      .then(async () => {
+        await refreshUser();
         snackbar.success('Squad created!');
         close();
       })

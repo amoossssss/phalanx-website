@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
 
 import EditSquadDialog from '@/components/EditSquadDialog/EditSquadDialog';
 import MemberList from '@/components/MemberList/MemberList';
@@ -10,6 +9,7 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import ApiService from '@/utils/api/ApiService';
 import StringHelper from '@/utils/helpers/StringHelper';
+import useNotification from '@/utils/hooks/useNotification';
 import { MemberType, SquadType } from '@/utils/constants/Types';
 import { useUser } from '@/utils/contexts/UserContext';
 import { useAuth } from '@/utils/contexts/AuthContext';
@@ -17,12 +17,12 @@ import { useAuth } from '@/utils/contexts/AuthContext';
 import './SquadSpace.scss';
 
 const SquadSpace = () => {
-  const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  const { id } = useParams<{ id: string }>();
-
+  const { snackbar } = useNotification();
   const { mySquad, refreshUser } = useUser();
   const { userAddress } = useAuth();
+
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const [squad, setSquad] = useState<SquadType | null>(null);
   const [memberList, setMemberList] = useState<MemberType[]>([]);
@@ -59,21 +59,53 @@ const SquadSpace = () => {
         await ApiService.squad.kickMember(id, targetWallet);
         await handleFetchSquad();
         await refreshUser();
-        enqueueSnackbar('Member removed', { variant: 'success' });
+        snackbar.success('Member removed');
       } catch {
-        enqueueSnackbar('Could not remove member', { variant: 'error' });
+        snackbar.error('Could not remove member');
       }
     },
-    [id, handleFetchSquad, refreshUser, enqueueSnackbar],
+    [id, handleFetchSquad, refreshUser, snackbar],
   );
 
-  const handleJoinSquad = () => {};
+  const handleJoinSquad = useCallback(async () => {
+    if (!squad) return;
+    try {
+      await ApiService.squad.joinSquadOpen(squad.squadId);
+      await refreshUser();
+      await handleFetchSquad();
+      snackbar.success(`Welcome to ${squad.name}`);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const data = err?.response?.data;
+      const message =
+        data &&
+        typeof data === 'object' &&
+        'error' in data &&
+        typeof (data as { error: unknown }).error === 'string'
+          ? (data as { error: string }).error
+          : 'Could not join squad';
+      snackbar.error(message);
+    }
+  }, [squad, refreshUser, handleFetchSquad, snackbar]);
 
-  const handleEditSquad = () => {
+  const handleEditSquad = useCallback(() => {
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleLeaveSquad = () => {};
+  const handleLeaveSquad = useCallback(async () => {
+    if (!squad) return;
+    ApiService.squad
+      .leaveSquad(squad.squadId)
+      .then(() => {
+        snackbar.success(`Left ${squad.name}`);
+        refreshUser();
+        navigate('/squad');
+        return;
+      })
+      .catch(() => {
+        snackbar.error('Something went wrong, please try again.');
+      });
+  }, [squad, refreshUser, snackbar, navigate]);
 
   if (!squad) return null;
 

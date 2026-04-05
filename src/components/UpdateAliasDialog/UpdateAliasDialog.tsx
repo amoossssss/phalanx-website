@@ -18,17 +18,18 @@ type UpdateAliasDialogType = {
 };
 
 const UpdateAliasDialog = ({ close }: UpdateAliasDialogType) => {
-  const { alias, setAlias } = useUser();
+  const { alias, setAlias, refreshUser } = useUser();
   const { snackbar } = useNotification();
 
   const [aliasValue, setAliasValue] = useState(alias ?? '');
 
-  const handleCreateSquad = () => {
-    if (!alias) return;
+  const handleUpdateAlias = () => {
+    if (!aliasValue) return;
     ApiService.wallet
       .updateAlias({ alias: aliasValue })
-      .then(() => {
+      .then(async () => {
         setAlias(aliasValue);
+        await refreshUser();
         snackbar.success('Alias updated!');
         close();
       })
@@ -58,8 +59,8 @@ const UpdateAliasDialog = ({ close }: UpdateAliasDialogType) => {
 
         <ButtonDiv
           className="update-button"
-          onClick={handleCreateSquad}
-          disabled={!alias}
+          onClick={handleUpdateAlias}
+          disabled={!aliasValue}
         >
           {'<Update>'}
         </ButtonDiv>

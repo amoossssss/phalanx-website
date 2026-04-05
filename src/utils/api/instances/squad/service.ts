@@ -125,6 +125,15 @@ const getSquadById = async (id: string) => {
   };
 };
 
+const joinSquadOpen = async (squadId: string) => {
+  const res = await postRequest(Route.joinSquadOpen(squadId), {});
+  return res.data;
+};
+
+const leaveSquad = async (squadId: string) => {
+  await deleteRequest(Route.leaveSquad(squadId));
+};
+
 const kickMember = async (squadId: string, targetWalletAddress: string) => {
   await deleteRequest(Route.kickMember(squadId, targetWalletAddress));
 };
@@ -141,6 +150,8 @@ export default {
   getMySquad,
   getSquadByPage,
   getSquadById,
+  joinSquadOpen,
+  leaveSquad,
   kickMember,
   editSquad,
 };

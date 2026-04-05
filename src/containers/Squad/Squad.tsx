@@ -64,6 +64,7 @@ const Squad = () => {
             <SquadCard
               key={item.squadId}
               isMySquad={mySquad?.squadId === item.squadId}
+              refreshSquadList={fetchSquadList}
               {...item}
             />
           ))}

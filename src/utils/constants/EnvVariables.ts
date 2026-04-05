@@ -15,7 +15,8 @@ const config = {
   GA_MEASUREMENT_ID: process.env['GA_MEASUREMENT_ID'] || '',
   API_URL: process.env.API_URL || 'http://localhost:8081',
   PACIFICA_BUILDER_CODE: process.env.PACIFICA_BUILDER_CODE || 'phalanx',
-  PACIFICA_MAX_FEE_RATE: process.env.PACIFICA_MAX_FEE_RATE || '0.001',
+  PACIFICA_MAX_FEE_RATE:
+    process.env.PACIFICA_MAX_FEE_RATE?.toString() || '0.001',
 };
 
 const EnvVariables: IEnvVariables = {

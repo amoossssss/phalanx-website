@@ -1288,7 +1288,7 @@ class PacificaHelper {
       type: 'approve_builder_code',
       data: {
         builder_code: args.builderCode,
-        max_fee_rate: Number(args.maxFeeRate),
+        max_fee_rate: args.maxFeeRate,
       },
     });
 
@@ -1304,7 +1304,7 @@ class PacificaHelper {
       timestamp,
       expiry_window,
       builder_code: args.builderCode,
-      max_fee_rate: Number(args.maxFeeRate),
+      max_fee_rate: args.maxFeeRate,
     };
 
     const res = await fetch(

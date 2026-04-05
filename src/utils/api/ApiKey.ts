@@ -5,6 +5,8 @@ enum ApiKey {
   verify = 'verify',
   logout = 'logout',
   squads = 'squads',
+  joinOpen = 'join-open',
+  leave = 'leave',
   my = 'my',
   list = 'list',
   page = 'page',

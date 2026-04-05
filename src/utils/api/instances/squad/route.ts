@@ -14,6 +14,12 @@ const getSquadByPage = (page: number | string) => {
   return `${path}?${ApiKey.page}=${page}`;
 };
 
+const joinSquadOpen = (squadId: string) =>
+  PathHelper.createPath([ApiKey.squads, squadId, ApiKey.joinOpen]);
+
+const leaveSquad = (squadId: string) =>
+  PathHelper.createPath([ApiKey.squads, squadId, ApiKey.leave]);
+
 const kickMember = (squadId: string, targetWallet: string) =>
   PathHelper.createPath([ApiKey.squads, squadId, 'members', targetWallet]);
 
@@ -23,5 +29,7 @@ export default {
   getSquadById,
   getMySquad,
   getSquadByPage,
+  joinSquadOpen,
+  leaveSquad,
   kickMember,
 };
