@@ -57,6 +57,12 @@ type SquadByIdResponseType = {
   avatar_url: string | null;
 };
 
+/** GET /api/squads/:id/heatmap — `heatmap[i]` = wallet addresses that traded on day i (UTC), i=0 today … i=19 */
+export type SquadHeatmapResponseType = {
+  squad_id: string;
+  heatmap: string[][];
+};
+
 const createSquad = async (payload: FormData) => {
   const res = await postRequest(Route.createSquad, payload);
   return res.data;
@@ -145,6 +151,13 @@ const joinSquadOpen = async (squadId: string) => {
   return res.data;
 };
 
+const getHeatmap = async (
+  squadId: string,
+): Promise<SquadHeatmapResponseType> => {
+  const res = await getRequest(Route.getHeatmap(squadId));
+  return res.data as SquadHeatmapResponseType;
+};
+
 const leaveSquad = async (squadId: string) => {
   await deleteRequest(Route.leaveSquad(squadId));
 };
@@ -165,6 +178,7 @@ export default {
   getMySquad,
   getSquadByPage,
   getSquadById,
+  getHeatmap,
   joinSquadOpen,
   leaveSquad,
   kickMember,

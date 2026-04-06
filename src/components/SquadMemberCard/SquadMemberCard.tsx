@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
+import ColorHelper from '@/utils/helpers/ColorHelper';
 import StringHelper from '@/utils/helpers/StringHelper';
 import useNotification from '@/utils/hooks/useNotification';
 import PacificaHelper, {
@@ -46,13 +47,7 @@ const SquadMemberCard = ({
   const volume = member.volume ?? 0;
   const pnl = member.pnl ?? 0;
 
-  const borderColor = squadColor
-    ? squadColor.startsWith('#')
-      ? `${squadColor}99`
-      : squadColor.includes('rgb(')
-      ? squadColor.replace('rgb(', 'rgba(').replace(')', ',0.6)')
-      : squadColor
-    : undefined;
+  const borderColor = ColorHelper.borderColor(squadColor);
 
   const copyWalletAddress = async () => {
     await copyToClipboard(member.walletAddress);
@@ -255,12 +250,7 @@ const SquadMemberCard = ({
     headerPositionCount !== null && headerPositionCount > 0;
 
   return (
-    <div
-      className="squad-member-card"
-      style={{
-        borderColor,
-      }}
-    >
+    <div className="squad-member-card" style={{ borderColor }}>
       <div className="top-section">
         {member.alias ? (
           <div className="name-container">

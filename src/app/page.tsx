@@ -24,6 +24,14 @@ const Body = () => {
     return isWindowSmall ? 'window-small' : '';
   }, [isWindowSmall]);
 
+  const viewContainerClassName = useMemo(() => {
+    const base = 'view-container';
+    if (location.pathname === '/trade') {
+      return `${base} view-container--trade`;
+    }
+    return base;
+  }, [location.pathname]);
+
   useEffect(() => {
     const scrollToTop = () => {
       window.scrollTo(0, 0);
@@ -42,7 +50,7 @@ const Body = () => {
     <main className={windowSmallClassname}>
       <div className="app-container">
         <Header />
-        <div className="view-container">
+        <div className={viewContainerClassName}>
           <Routes>
             <Route path="/squad/:id" element={<SquadSpace />} />
             <Route path="/squad" element={<Squad />} />

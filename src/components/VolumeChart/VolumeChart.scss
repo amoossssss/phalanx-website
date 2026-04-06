@@ -1,0 +1,97 @@
+@import 'src/styles/config';
+
+.volume-chart {
+  @include column;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 48rem;
+  padding: 2rem;
+  border: 2px solid $color-primary-dark;
+  background: $color-neutral-light;
+  box-sizing: border-box;
+
+  .volume-chart-title {
+    @include font-16;
+    color: $color-primary;
+    letter-spacing: 0.04em;
+  }
+
+  .volume-chart-empty {
+    @include font-12;
+    color: $color-white-50-percent;
+    padding: 1rem 0;
+  }
+
+  .volume-chart-square {
+    width: 100%;
+    //max-width: 28rem;
+    max-height: 28rem;
+    align-self: center;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .volume-chart-slice {
+    min-height: 2px;
+    min-width: 0;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 0.92;
+    }
+  }
+
+  .volume-chart-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    @include column;
+    gap: 0.5rem;
+  }
+
+  .volume-chart-legend-row {
+    @include row;
+    align-items: center;
+    gap: 0.6rem;
+    @include font-12;
+    color: $color-white-70-percent;
+  }
+
+  .volume-chart-legend-swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
+    border-radius: 0.15rem;
+  }
+
+  .volume-chart-legend-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .volume-chart-legend-pct {
+    color: $color-white-50-percent;
+    font-variant-numeric: tabular-nums;
+    width: fit-content;
+    text-align: right;
+  }
+
+  .volume-chart-legend-vol {
+    color: $color-tertiary;
+    font-variant-numeric: tabular-nums;
+    width: 4.5rem;
+    text-align: right;
+  }
+}
+
+.window-small {
+  .volume-chart {
+    max-width: none;
+  }
+}

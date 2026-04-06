@@ -7,6 +7,7 @@ enum ApiKey {
   squads = 'squads',
   joinOpen = 'join-open',
   leave = 'leave',
+  heatmap = 'heatmap',
   my = 'my',
   list = 'list',
   page = 'page',

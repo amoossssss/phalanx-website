@@ -6,6 +6,7 @@
   padding: 3rem;
   width: 100svw;
   box-sizing: border-box;
+  overflow: hidden;
 
   .squad-info-container {
     @include row;
@@ -127,6 +128,7 @@
       @include column;
       gap: 2rem;
       flex: 1;
+      overflow: auto;
     }
   }
 }
@@ -138,6 +140,7 @@
     .squad-info-container {
       border-left: 3px solid $color-primary;
       flex-wrap: wrap;
+      padding: 2rem 1rem;
 
       .squad-avatar-container {
         width: 5rem;
@@ -159,6 +162,10 @@
       .squad-earnings {
         width: 100%;
       }
+    }
+
+    .squad-content {
+      @include column;
     }
   }
 }

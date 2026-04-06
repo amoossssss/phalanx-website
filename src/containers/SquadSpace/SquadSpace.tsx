@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 
 import ConfirmKickMemberDialog from '@/components/ConfirmKickMemberDialog/ConfirmKickMemberDialog';
 import EditSquadDialog from '@/components/EditSquadDialog/EditSquadDialog';
+import Heatmap from '@/components/Heatmap/Heatmap';
 import MemberList from '@/components/MemberList/MemberList';
+import VolumeChart from '@/components/VolumeChart/VolumeChart';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
@@ -180,7 +182,14 @@ const SquadSpace = () => {
             squadColor={squad.color}
           />
         </div>
-        <div className="right-section">{/* TODO: heatmap & charts */}</div>
+        <div className="right-section">
+          <Heatmap
+            squadId={squad.squadId}
+            memberCount={squad.memberCount}
+            squadColor={squad.color}
+          />
+          <VolumeChart members={memberList} squadColor={squad.color} />
+        </div>
       </div>
 
       {kickMemberTarget && id && (
