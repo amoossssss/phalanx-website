@@ -61,7 +61,7 @@
           @include font-24;
         }
 
-        &.roi {
+        &.volume {
           .earnings-number {
             color: $color-tertiary;
           }
@@ -70,6 +70,10 @@
         &.pnl {
           .earnings-number {
             color: $color-primary;
+
+            &.negative {
+              color: $color-secondary;
+            }
           }
         }
       }
@@ -112,8 +116,18 @@
   }
 
   .squad-content {
-    @include column;
+    @include row;
     gap: 2rem;
+
+    .left-section {
+      flex: 2;
+    }
+
+    .right-section {
+      @include column;
+      gap: 2rem;
+      flex: 1;
+    }
   }
 }
 

@@ -6,8 +6,8 @@ export type SquadType = {
   leader: string;
   memberCount: number;
   tags: string[];
-  ROI: number;
-  PnL: number;
+  pnl: number;
+  volume: number;
 };
 
 export type MemberType = {
@@ -17,7 +17,7 @@ export type MemberType = {
   joinedAt: string;
   /** Set when API provides per-member aggregates; otherwise null */
   pnl: number | null;
-  roi: number | null;
+  volume: number | null;
 };
 
 export default {};

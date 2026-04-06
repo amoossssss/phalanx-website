@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useNavigate } from 'react-router-dom';
 
+import ConfirmKickMemberDialog from '@/components/ConfirmKickMemberDialog/ConfirmKickMemberDialog';
 import EditSquadDialog from '@/components/EditSquadDialog/EditSquadDialog';
 import MemberList from '@/components/MemberList/MemberList';
 
@@ -27,6 +28,9 @@ const SquadSpace = () => {
   const [squad, setSquad] = useState<SquadType | null>(null);
   const [memberList, setMemberList] = useState<MemberType[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [kickMemberTarget, setKickMemberTarget] = useState<MemberType | null>(
+    null,
+  );
 
   const isMySquad = mySquad?.squadId === id;
   const isLeader =
@@ -52,20 +56,14 @@ const SquadSpace = () => {
     navigate('/squad');
   }, [id, navigate, handleFetchSquad]);
 
-  const handleKickMember = useCallback(
-    async (targetWallet: string) => {
-      if (!id) return;
-      try {
-        await ApiService.squad.kickMember(id, targetWallet);
-        await handleFetchSquad();
-        await refreshUser();
-        snackbar.success('Member removed');
-      } catch {
-        snackbar.error('Could not remove member');
-      }
-    },
-    [id, handleFetchSquad, refreshUser, snackbar],
-  );
+  const handleRequestKickMember = useCallback((member: MemberType) => {
+    setKickMemberTarget(member);
+  }, []);
+
+  const handleKickSucceeded = useCallback(async () => {
+    await handleFetchSquad();
+    await refreshUser();
+  }, [handleFetchSquad, refreshUser]);
 
   const handleJoinSquad = useCallback(async () => {
     if (!squad) return;
@@ -134,14 +132,20 @@ const SquadSpace = () => {
         </div>
 
         <div className="squad-earnings">
-          <div className="earnings-item roi">
-            <div>{'Total_ROI'}</div>
-            <div className="earnings-number">{squad.ROI}</div>
+          <div className="earnings-item volume">
+            <div>{'Total_Volume'}</div>
+            <div className="earnings-number">
+              {StringHelper.formatCompactNumber(squad.volume)}
+            </div>
           </div>
 
           <div className="earnings-item pnl">
-            <div>{'Current_PnL'}</div>
-            <div className="earnings-number">{squad.PnL}</div>
+            <div>{'Total_PnL'}</div>
+            <div
+              className={`earnings-number ${squad.pnl < 0 ? 'negative' : ''}`}
+            >
+              {StringHelper.formatCompactNumber(squad.pnl)}
+            </div>
           </div>
         </div>
 
@@ -167,13 +171,26 @@ const SquadSpace = () => {
       </div>
 
       <div className="squad-content">
-        <MemberList
-          members={memberList}
-          isLeader={isLeader}
-          currentWalletAddress={userAddress}
-          onKickMember={handleKickMember}
-        />
+        <div className="left-section">
+          <MemberList
+            members={memberList}
+            isLeader={isLeader}
+            currentWalletAddress={userAddress}
+            onKickMember={handleRequestKickMember}
+            squadColor={squad.color}
+          />
+        </div>
+        <div className="right-section">{/* TODO: heatmap & charts */}</div>
       </div>
+
+      {kickMemberTarget && id && (
+        <ConfirmKickMemberDialog
+          squadId={id}
+          member={kickMemberTarget}
+          close={() => setKickMemberTarget(null)}
+          onKicked={handleKickSucceeded}
+        />
+      )}
 
       {isEditDialogOpen && (
         <EditSquadDialog

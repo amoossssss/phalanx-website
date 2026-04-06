@@ -1,6 +1,8 @@
-import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
+import { useEffect, useState } from 'react';
 
-import StringHelper from '@/utils/helpers/StringHelper';
+import SquadMemberCard from '@/components/SquadMemberCard/SquadMemberCard';
+
+import PacificaHelper from '@/utils/helpers/PacificaHelper';
 import { MemberType } from '@/utils/constants/Types';
 
 import './MemberList.scss';
@@ -9,14 +11,8 @@ type MemberListProps = {
   members: MemberType[];
   isLeader: boolean;
   currentWalletAddress: string;
-  onKickMember: (targetWallet: string) => void | Promise<void>;
-};
-
-const memberDisplayLabel = (member: MemberType) => {
-  if (member.alias?.trim()) {
-    return `@${member.alias.trim()}`;
-  }
-  return `@${StringHelper.truncateAddress(member.walletAddress)}`;
+  onKickMember: (member: MemberType) => void;
+  squadColor: string;
 };
 
 const MemberList = ({
@@ -24,58 +20,53 @@ const MemberList = ({
   isLeader,
   currentWalletAddress,
   onKickMember,
+  squadColor,
 }: MemberListProps) => {
+  const [tickBySymbol, setTickBySymbol] = useState<
+    Record<string, string | number>
+  >({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void PacificaHelper.getMarkets()
+      .then((markets) => {
+        if (cancelled) return;
+        const next: Record<string, string | number> = {};
+        for (const m of markets) {
+          const sym = m.symbol;
+          if (!sym || m.tick_size === undefined || m.tick_size === null)
+            continue;
+          next[sym] = m.tick_size;
+        }
+        setTickBySymbol(next);
+      })
+      .catch(() => {
+        if (!cancelled) setTickBySymbol({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="member-list">
-      <div className="member-table">
-        <div className="member-row table-header">
-          <div className="col col-member">{'Member'}</div>
-          <div className="col col-role">{'Role'}</div>
-          <div className="col col-roi">{'ROI'}</div>
-          <div className="col col-pnl">{'PnL'}</div>
-          {isLeader && <div className="col col-action" aria-hidden />}
-        </div>
+      {members.map((member) => {
+        const canKick =
+          isLeader &&
+          member.role === 'member' &&
+          member.walletAddress !== currentWalletAddress;
 
-        {members.map((member) => {
-          const canKick =
-            isLeader &&
-            member.role === 'member' &&
-            member.walletAddress !== currentWalletAddress;
-
-          return (
-            <div className="member-row" key={member.walletAddress}>
-              <div className="col col-member" title={member.walletAddress}>
-                {memberDisplayLabel(member)}
-              </div>
-              <div className="col col-role">
-                <span className={`role-badge role-${member.role}`}>
-                  {member.role === 'captain' ? 'Leader' : 'Member'}
-                </span>
-              </div>
-              <div className="col col-roi">
-                {StringHelper.formatStat(member.roi, '%')}
-              </div>
-              <div className="col col-pnl">
-                {StringHelper.formatStat(member.pnl)}
-              </div>
-              {isLeader && (
-                <div className="col col-action">
-                  {canKick ? (
-                    <ButtonDiv
-                      className="kick-button"
-                      onClick={() => onKickMember(member.walletAddress)}
-                    >
-                      {'Kick'}
-                    </ButtonDiv>
-                  ) : (
-                    <span className="action-placeholder" />
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+        return (
+          <SquadMemberCard
+            key={member.walletAddress}
+            member={member}
+            canKick={canKick}
+            onKickMember={onKickMember}
+            squadColor={squadColor}
+            tickBySymbol={tickBySymbol}
+          />
+        );
+      })}
     </div>
   );
 };

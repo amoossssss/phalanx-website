@@ -29,16 +29,31 @@ type SquadResponseType = {
   captain_display?: string | null;
 };
 
+type SquadListItemResponse = SquadResponseType & {
+  volume: number;
+  pnl: number;
+};
+
 type SquadListResponseType = {
-  items: SquadResponseType[];
+  items: SquadListItemResponse[];
   page: number;
   page_size: number;
   total: number;
 };
 
+type SquadByIdSquadRow = SquadRowType & {
+  volume: number;
+  pnl: number;
+};
+
+type SquadByIdMemberRow = MemberRowType & {
+  volume: number;
+  pnl: number;
+};
+
 type SquadByIdResponseType = {
-  squad: SquadRowType;
-  members: MemberRowType[];
+  squad: SquadByIdSquadRow;
+  members: SquadByIdMemberRow[];
   avatar_url: string | null;
 };
 
@@ -60,8 +75,8 @@ const getMySquad = async () => {
     leader: data.captain_display,
     memberCount: data.member_count,
     tags: [],
-    ROI: 100, // TODO: change...
-    PnL: 100, // TODO: change...
+    volume: 0,
+    pnl: 0,
   } as SquadType;
 };
 
@@ -77,8 +92,8 @@ const getSquadByPage = async (page: number) => {
     leader: item.captain_display,
     memberCount: item.member_count,
     tags: [],
-    ROI: 100, // TODO: change...
-    PnL: 100, // TODO: change...
+    volume: Number(item.volume) || 0,
+    pnl: Number(item.pnl) || 0,
   })) as SquadType[];
 
   return {
@@ -105,8 +120,8 @@ const getSquadById = async (id: string) => {
     leader,
     memberCount: data.members.length,
     tags: [],
-    ROI: 100, // TODO: change...
-    PnL: 100, // TODO: change...
+    volume: Number(data.squad.volume) || 0,
+    pnl: Number(data.squad.pnl) || 0,
   } as SquadType;
 
   const members = data.members.map((item) => ({
@@ -114,8 +129,8 @@ const getSquadById = async (id: string) => {
     role: item.role,
     alias: item.alias,
     joinedAt: item.joined_at,
-    pnl: null,
-    roi: null,
+    pnl: Number(item.pnl) || 0,
+    volume: Number(item.volume) || 0,
   })) as MemberType[];
 
   return {

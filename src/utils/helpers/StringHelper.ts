@@ -21,6 +21,25 @@ class StringHelper {
     return `${value}${suffix}`;
   };
 
+  /**
+   * Compact display: two decimals, then `K` / `M` for thousands and millions.
+   * Negative values use the same tiers on the absolute value.
+   */
+  static formatCompactNumber = (value: number): string => {
+    if (!Number.isFinite(value)) {
+      return '—';
+    }
+    const sign = value < 0 ? '-' : '';
+    const n = Math.abs(value);
+    if (n < 1000) {
+      return `${sign}${n.toFixed(2)}`;
+    }
+    if (n < 1_000_000) {
+      return `${sign}${(n / 1000).toFixed(2)} K`;
+    }
+    return `${sign}${(n / 1_000_000).toFixed(2)} M`;
+  };
+
   static parseNumber = (value: string): number | null => {
     const cleaned = value.replace(/,/g, '').trim();
     if (!cleaned) return null;

@@ -123,6 +123,17 @@ type WsEnvelope<T> = {
   [key: string]: unknown;
 };
 
+/** Route multi-account streams: Pacifica may send `account` on the envelope (or `u`). */
+function accountFromPacificaWsEnvelope(
+  env: WsEnvelope<unknown>,
+): string | null {
+  const a = (env as { account?: unknown }).account;
+  if (typeof a === 'string' && a.length > 0) return a;
+  const u = (env as { u?: unknown }).u;
+  if (typeof u === 'string' && u.length > 0) return u;
+  return null;
+}
+
 type CandleStreamData = {
   t: number; // start time ms
   T?: number; // end time ms
@@ -491,10 +502,23 @@ class PacificaWsManager {
 
       // Account positions stream messages use channel="account_positions"
       if (channel === 'account_positions') {
-        const key = this.subKey('account_positions', '*');
-        const sub = this.subs.get(key);
-        if (!sub) return;
-        sub.handlers.forEach((h) => h(env));
+        const msgAccount = accountFromPacificaWsEnvelope(env);
+        if (msgAccount) {
+          const key = this.subKey('account_positions', msgAccount);
+          const sub = this.subs.get(key);
+          if (!sub) return;
+          sub.handlers.forEach((h) => h(env));
+          return;
+        }
+        // Legacy: no account on envelope — only safe when a single account is subscribed
+        const keys = Array.from(this.subs.keys()).filter((k) =>
+          k.startsWith('account_positions:'),
+        );
+        if (keys.length === 1) {
+          const sub = this.subs.get(keys[0]!);
+          if (!sub) return;
+          sub.handlers.forEach((h) => h(env));
+        }
         return;
       }
 
@@ -970,7 +994,7 @@ class PacificaWsManager {
     onPositions: (rows: AccountPositionsStreamRow[]) => void;
     onError?: (err: unknown) => void;
   }): () => void {
-    const key = this.subKey('account_positions', '*');
+    const key = this.subKey('account_positions', args.account);
 
     const params = {
       source: 'account_positions',
@@ -991,6 +1015,8 @@ class PacificaWsManager {
     }
 
     const handler = (env: WsEnvelope<unknown>) => {
+      const msgAccount = accountFromPacificaWsEnvelope(env);
+      if (msgAccount && msgAccount !== args.account) return;
       const rows = env.data as AccountPositionsStreamRow[] | undefined;
       if (!Array.isArray(rows)) return;
       args.onPositions(rows);

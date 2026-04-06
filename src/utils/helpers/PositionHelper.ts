@@ -100,6 +100,34 @@ class PositionHelper {
     return Math.min(max, places);
   }
 
+  /**
+   * Format a price for display on the market `tick_size` grid (nearest tick).
+   * When `tickSize` is missing or invalid, uses generic decimal formatting.
+   */
+  static formatPriceWithTickSize(
+    price: number,
+    tickSize: string | number | undefined | null,
+  ): string {
+    if (!Number.isFinite(price)) return '—';
+    const tick =
+      typeof tickSize === 'number'
+        ? tickSize
+        : typeof tickSize === 'string'
+        ? Number(tickSize.replace(/,/g, ''))
+        : NaN;
+    if (!Number.isFinite(tick) || tick <= 0) {
+      return price.toLocaleString(undefined, { maximumFractionDigits: 8 });
+    }
+    const decimals = this.priceIncrementDisplayDecimals(tick);
+    const ticks = Math.floor(price / tick);
+    const rounded = ticks * tick;
+    const fixed = Number(rounded.toFixed(Math.min(12, decimals)));
+    return fixed.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: decimals,
+    });
+  }
+
   /** Floor to the nearest lot size step. */
   static floorToLotSize(amount: number, lotSize: number): number {
     if (!Number.isFinite(amount) || amount <= 0) return 0;

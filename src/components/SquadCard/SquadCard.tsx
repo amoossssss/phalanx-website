@@ -18,8 +18,8 @@ type SquadCardType = {
   leader: string;
   memberCount: number;
   tags: string[];
-  ROI: number;
-  PnL: number;
+  volume: number;
+  pnl: number;
   isMySquad: boolean;
 };
 
@@ -31,8 +31,8 @@ const SquadCard = ({
   leader,
   memberCount,
   tags,
-  ROI,
-  PnL,
+  volume,
+  pnl,
   isMySquad,
 }: SquadCardType) => {
   const navigate = useNavigate();
@@ -86,14 +86,18 @@ const SquadCard = ({
       </div>
 
       <div className="squad-earnings">
-        <div className="earnings-item roi">
-          <div>{'Total_ROI'}</div>
-          <div className="earnings-number">{ROI}</div>
+        <div className="earnings-item volume">
+          <div>{'Total_Volume'}</div>
+          <div className="earnings-number">
+            {StringHelper.formatCompactNumber(volume)}
+          </div>
         </div>
 
         <div className="earnings-item pnl">
           <div>{'Current_PnL'}</div>
-          <div className="earnings-number">{PnL}</div>
+          <div className="earnings-number">
+            {StringHelper.formatCompactNumber(pnl)}
+          </div>
         </div>
       </div>
 
