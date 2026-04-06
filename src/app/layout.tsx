@@ -1,5 +1,5 @@
 export const metadata = {
-  title: '',
+  title: '_PHALANX',
   description: '',
   // Browser tab + Apple “Add to Home Screen” icon (180×180 recommended; any PNG scales)
   icons: {
