@@ -113,12 +113,16 @@
     background: transparent;
     color: $color-white-70-percent;
     cursor: pointer;
-  }
 
-  .tab.active {
-    border-color: $color-primary;
-    color: $color-primary;
-    background: rgba(0, 255, 252, 0.08);
+    &:hover {
+      border-color: $color-primary;
+    }
+
+    &.active {
+      border-color: $color-primary;
+      color: $color-primary;
+      background: rgba(0, 255, 252, 0.08);
+    }
   }
 
   .position-panel-body {

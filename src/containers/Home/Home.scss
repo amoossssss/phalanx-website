@@ -1,10 +1,99 @@
 @import 'src/styles/config';
 
 .home {
-  @include column;
+  @include row;
+  gap: 2rem;
+  padding: 3rem;
+
+  .left-section {
+    @include column;
+    gap: 2rem;
+    flex: 5;
+
+    .bitmap-title {
+      @include row;
+      align-items: center;
+      justify-content: space-between;
+
+      .bitmap-title-text {
+        font-size: 5.6rem;
+        font-weight: 700;
+        color: $color-primary;
+        text-shadow: $text-shadow-primary;
+      }
+
+      .switch-button {
+        @include base-button;
+        background: $color-tertiary;
+        color: $color-neutral;
+        box-sizing: border-box;
+        padding: 0 1rem;
+        box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+        position: relative;
+
+        &:hover {
+          @include mini-scale(1.02);
+          box-shadow: 4px 4px 4px $color-tertiary-dark;
+        }
+
+        .tag {
+          @include font-12;
+          position: absolute;
+          top: -1.6rem;
+          right: -0.5rem;
+          background: $color-secondary;
+          padding: 0.3rem;
+          color: $color-white01;
+        }
+      }
+    }
+
+    .squad-data-section {
+      @include row;
+      gap: 2rem;
+
+      .data-container {
+        @include column;
+        align-items: center;
+        gap: 0.4rem;
+        flex: 1;
+        border: 2px solid $color-primary-dark;
+        background: $color-neutral-light;
+        padding: 1rem;
+
+        .data-title {
+          @include font-12;
+          color: $color-white-50-percent;
+        }
+
+        .data-content {
+          @include font-28;
+          color: $color-primary;
+
+          &.volume {
+            color: $color-tertiary;
+          }
+        }
+      }
+    }
+  }
+
+  .right-section {
+    flex: 2;
+  }
 }
 
 .window-small {
   .home {
+    @include column;
+    padding: 3rem 2rem;
+
+    .left-section {
+      .bitmap-title {
+        .bitmap-title-text {
+          font-size: 2.8rem;
+        }
+      }
+    }
   }
 }

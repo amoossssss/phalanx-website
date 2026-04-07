@@ -120,6 +120,7 @@ const SquadSpace = () => {
             className="squad-avatar-container"
             src={squad.avatarUrl}
             alt="avatar"
+            style={{ boxShadow: `0 0 2px 2px ${squad.color}` }}
           />
         )}
 

@@ -42,6 +42,10 @@
       border: 1px solid $color-primary-dark;
       background: transparent;
       color: $color-white-70-percent;
+
+      &:hover {
+        border-color: $color-primary;
+      }
     }
 
     .toggle.active {
@@ -66,16 +70,28 @@
     flex: 1;
   }
 
-  .side-btn.buy.active {
-    border-color: $color-tertiary;
-    background: rgba(142, 255, 113, 0.12);
-    color: $color-tertiary;
+  .side-btn.buy {
+    &:hover {
+      border-color: $color-tertiary;
+    }
+
+    &.active {
+      border-color: $color-tertiary;
+      background: rgba(142, 255, 113, 0.12);
+      color: $color-tertiary;
+    }
   }
 
-  .side-btn.sell.active {
-    border-color: $color-secondary;
-    background: rgba(255, 81, 250, 0.12);
-    color: $color-secondary;
+  .side-btn.sell {
+    &:hover {
+      border-color: $color-secondary;
+    }
+
+    &.active {
+      border-color: $color-secondary;
+      background: rgba(255, 81, 250, 0.12);
+      color: $color-secondary;
+    }
   }
 
   .section {
@@ -110,14 +126,18 @@
     color: $color-white01;
     outline: none;
 
+    &:focus {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 2px rgba(143, 245, 255, 0.12);
+    }
+
+    &:hover {
+      border-color: $color-primary;
+    }
+
     &.readonly {
       border: none;
     }
-  }
-
-  .input:focus {
-    border-color: $color-primary;
-    box-shadow: 0 0 0 2px rgba(143, 245, 255, 0.12);
   }
 
   .quick {

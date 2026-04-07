@@ -20,6 +20,18 @@ const joinSquadOpen = (squadId: string) =>
 const getHeatmap = (squadId: string) =>
   PathHelper.createPath([ApiKey.squads, squadId, ApiKey.heatmap]);
 
+const get24hrLeaderboard = PathHelper.createPath([
+  ApiKey.squads,
+  ApiKey.leaderboard,
+  ApiKey.day,
+]);
+
+const getTotalLeaderboard = PathHelper.createPath([
+  ApiKey.squads,
+  ApiKey.leaderboard,
+  ApiKey.total,
+]);
+
 const leaveSquad = (squadId: string) =>
   PathHelper.createPath([ApiKey.squads, squadId, ApiKey.leave]);
 
@@ -34,6 +46,8 @@ export default {
   getSquadByPage,
   joinSquadOpen,
   getHeatmap,
+  get24hrLeaderboard,
+  getTotalLeaderboard,
   leaveSquad,
   kickMember,
 };

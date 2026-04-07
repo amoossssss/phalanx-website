@@ -1,0 +1,121 @@
+@import 'src/styles/config';
+
+.squad-leaderboard {
+  @include column;
+  gap: 2rem;
+  margin-top: 2rem;
+
+  .leaderboard-title {
+    @include font-20;
+    color: $color-primary;
+    text-align: left;
+    margin-left: 1rem;
+  }
+
+  .squad-list {
+    @include column;
+    gap: 1rem;
+  }
+
+  .squad-leaderboard-content {
+    @include row;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 1.2rem 1rem 1rem;
+    background: $color-neutral-light;
+    position: relative;
+
+    &:hover {
+      @include mini-scale(1.02);
+    }
+
+    .squad-avatar {
+      width: 6rem;
+      height: 6rem;
+      object-fit: cover;
+    }
+
+    .info-section {
+      @include column;
+      gap: 0.4rem;
+      flex: 1;
+
+      .squad-name {
+        @include font-16-bold;
+      }
+
+      .squad-info {
+        @include row;
+        gap: 1rem;
+        align-items: flex-end;
+        //justify-content: space-between;
+
+        .info-title {
+          @include font-12;
+          color: $color-white-50-percent;
+        }
+
+        .info-content {
+          @include font-14;
+          color: $color-primary;
+
+          &.volume {
+            color: $color-tertiary;
+          }
+
+          &.negative {
+            color: $color-secondary;
+          }
+        }
+      }
+
+      .squad-volume {
+        @include font-12;
+        color: $color-tertiary;
+      }
+    }
+
+    .rank-tag {
+      @include font-12;
+      position: absolute;
+      top: -1.6rem;
+      left: -0.5rem;
+      background: $color-secondary;
+      padding: 0.3rem;
+      color: $color-white01;
+    }
+
+    .my-squad-tag {
+      @include font-12;
+      position: absolute;
+      top: -1.6rem;
+      right: -0.5rem;
+      background: $color-secondary;
+      padding: 0.3rem;
+      color: $color-white01;
+    }
+  }
+
+  .view-squad-button {
+    @include base-button;
+    background: $color-tertiary;
+    color: $color-neutral;
+    box-sizing: border-box;
+    padding: 0 1rem;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+
+    &:hover {
+      @include mini-scale(1.02);
+      box-shadow: 4px 4px 4px $color-tertiary-dark;
+    }
+  }
+}
+
+.window-small {
+  .squad-leaderboard {
+    .leaderboard-title {
+      margin-left: 0;
+      margin-top: 1rem;
+    }
+  }
+}

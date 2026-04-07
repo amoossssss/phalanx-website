@@ -97,6 +97,10 @@
       color: $color-neutral;
       padding: 0.3rem 0.5rem;
       box-sizing: border-box;
+
+      &:hover {
+        @include mini-scale(1.02);
+      }
     }
 
     .kick-button {
@@ -104,6 +108,10 @@
       color: $color-white01;
       padding: 0.3rem 0.5rem;
       box-sizing: border-box;
+
+      &:hover {
+        @include mini-scale(1.02);
+      }
     }
   }
 

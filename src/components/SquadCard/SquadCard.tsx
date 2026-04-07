@@ -21,6 +21,7 @@ type SquadCardType = {
   volume: number;
   pnl: number;
   isMySquad: boolean;
+  color: string;
 };
 
 const SquadCard = ({
@@ -34,6 +35,7 @@ const SquadCard = ({
   volume,
   pnl,
   isMySquad,
+  color,
 }: SquadCardType) => {
   const navigate = useNavigate();
   const { refreshUser, mySquad } = useUser();
@@ -68,7 +70,12 @@ const SquadCard = ({
   return (
     <div className="squad-card">
       <div className="avatar-container">
-        <img className="avatar" src={avatarUrl} alt={'avatar'} />
+        <img
+          className="avatar"
+          src={avatarUrl}
+          alt={'avatar'}
+          style={{ boxShadow: `0 0 2px 2px ${color}` }}
+        />
         <div className="leader">
           <div>{'Leader'}</div>
           <div className="leader-name">{`@${StringHelper.truncateName(

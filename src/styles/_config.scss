@@ -148,6 +148,10 @@ $font-family-display: 'Space Grotesk', 'Montserrat', sans-serif;
   cursor: pointer;
   color: $color-white01;
   height: 4rem;
+
+  &:hover {
+    @include mini-scale(1.02);
+  }
 }
 
 @mixin checkbox() {

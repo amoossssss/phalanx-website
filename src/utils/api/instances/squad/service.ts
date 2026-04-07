@@ -63,6 +63,39 @@ export type SquadHeatmapResponseType = {
   heatmap: string[][];
 };
 
+/** Squad object embedded in leaderboard responses (JSON dates as ISO strings). */
+export type SquadLeaderboardSquadRow = {
+  id: string;
+  name: string;
+  invite_code: string | null;
+  color: string;
+  created_at: string;
+  /** Squad avatar from `squad_avatar` (also on parent item as `avatar_url`). */
+  avatar_url: string | null;
+};
+
+export type SquadLeaderboardItemType = {
+  snapshot_at: string;
+  builder_code: string;
+  squad: SquadLeaderboardSquadRow;
+  avatar_url: string | null;
+  member_count: number;
+  captain_display: string | null;
+  volume_1d: number;
+  volume_7d: number;
+  volume_total: number;
+  pnl_1d: number;
+  pnl_7d: number;
+  pnl_total: number;
+  volume_rank: number;
+  pnl_rank: number;
+};
+
+export type SquadLeaderboardResponseType = {
+  builder_code: string;
+  items: SquadLeaderboardItemType[];
+};
+
 const createSquad = async (payload: FormData) => {
   const res = await postRequest(Route.createSquad, payload);
   return res.data;
@@ -158,6 +191,16 @@ const getHeatmap = async (
   return res.data as SquadHeatmapResponseType;
 };
 
+const get24hrLeaderboard = async (): Promise<SquadLeaderboardResponseType> => {
+  const res = await getRequest(Route.get24hrLeaderboard);
+  return res.data as SquadLeaderboardResponseType;
+};
+
+const getTotalLeaderboard = async (): Promise<SquadLeaderboardResponseType> => {
+  const res = await getRequest(Route.getTotalLeaderboard);
+  return res.data as SquadLeaderboardResponseType;
+};
+
 const leaveSquad = async (squadId: string) => {
   await deleteRequest(Route.leaveSquad(squadId));
 };
@@ -179,6 +222,8 @@ export default {
   getSquadByPage,
   getSquadById,
   getHeatmap,
+  get24hrLeaderboard,
+  getTotalLeaderboard,
   joinSquadOpen,
   leaveSquad,
   kickMember,
