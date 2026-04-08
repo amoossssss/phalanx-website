@@ -5,6 +5,7 @@ import bs58 from 'bs58';
 
 import DepositDialog from '@/components/DepositDialog/DepositDialog';
 import UpdateAliasDialog from '@/components/UpdateAliasDialog/UpdateAliasDialog';
+import WithdrawDialog from '@/components/WithdrawDialog/WithdrawDialog';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
@@ -25,6 +26,7 @@ const ConnectWalletModule = () => {
 
   const [isUpdateAliasOpen, setIsUpdateAliasOpen] = useState(false);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   const pendingSignInRef = useRef(false);
 
@@ -121,6 +123,11 @@ const ConnectWalletModule = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleWithdraw = () => {
+    setIsWithdrawOpen(true);
+    setIsDropdownOpen(false);
+  };
+
   const connectBusy = connecting && !connected;
 
   return (
@@ -149,6 +156,9 @@ const ConnectWalletModule = () => {
               <ButtonDiv className="dropdown-item" onClick={handleDeposit}>
                 {'Deposit'}
               </ButtonDiv>
+              <ButtonDiv className="dropdown-item" onClick={handleWithdraw}>
+                {'Withdraw'}
+              </ButtonDiv>
               <ButtonDiv className="dropdown-item" onClick={handleLogout}>
                 {'Logout'}
               </ButtonDiv>
@@ -161,6 +171,9 @@ const ConnectWalletModule = () => {
         <UpdateAliasDialog close={() => setIsUpdateAliasOpen(false)} />
       )}
       {isDepositOpen && <DepositDialog close={() => setIsDepositOpen(false)} />}
+      {isWithdrawOpen && (
+        <WithdrawDialog close={() => setIsWithdrawOpen(false)} />
+      )}
     </div>
   );
 };

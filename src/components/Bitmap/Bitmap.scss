@@ -1,0 +1,96 @@
+@import 'src/styles/config';
+
+.bitmap {
+  position: relative;
+  overflow: hidden;
+  max-width: 50rem;
+  max-height: 50rem;
+  aspect-ratio: 1;
+  width: 100%;
+  margin: 0 auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: 0 0 5px 5px rgba(143, 245, 255, 0.5);
+
+  .bitmap-resizing {
+    @include center-item;
+    @include font-16-bold;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    color: $color-primary;
+    text-shadow: $text-shadow-primary;
+  }
+
+  .bitmap-rectangle {
+    position: absolute;
+    will-change: transform;
+
+    .bitmap-rectangle-surface {
+      @include center-item;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      transition: opacity 0.15s ease;
+
+      .avatar {
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+        object-fit: cover;
+        transition: opacity 0.15s ease;
+      }
+    }
+
+    &:hover .bitmap-rectangle-surface {
+      opacity: 0.45;
+    }
+
+    .bitmap-rectangle-hover {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2em;
+      padding: 2px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+      font-size: clamp(0.42rem, 1.5vmin, 1.2rem);
+    }
+
+    &:hover .bitmap-rectangle-hover {
+      opacity: 1;
+    }
+
+    .bitmap-rectangle-stat {
+      @include column;
+      align-items: center;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .bitmap-rectangle-stat-label {
+      color: $color-white-50-percent;
+      text-shadow: $text-shadow-default;
+    }
+
+    .bitmap-rectangle-stat-value {
+      @include font-bold;
+      color: $color-primary;
+      text-shadow: $text-shadow-default;
+
+      &.volume {
+        color: $color-tertiary;
+      }
+
+      &.negative {
+        color: $color-secondary;
+      }
+    }
+  }
+}

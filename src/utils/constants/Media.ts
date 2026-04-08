@@ -30,13 +30,14 @@ export const icons = {
   watchIcon: '/icons/watch_icon.svg',
 };
 
-export const images = {};
-
-export type imagesKey = keyof typeof images;
+export const images = {
+  bitmap: '/images/bitmap.png',
+};
 
 class Media {
   static icons = icons;
   static images = images;
+  static favicon = '/favicon.png';
 }
 
 export default Media;

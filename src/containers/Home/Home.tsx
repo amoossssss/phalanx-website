@@ -10,6 +10,7 @@ import useWindowSize from '@/utils/hooks/useWindowSize';
 import { SquadLeaderboardResponseType } from '@/utils/api/instances/squad/service';
 
 import './Home.scss';
+import Bitmap from '@/components/Bitmap/Bitmap';
 
 const Home = () => {
   const { isWindowSmall } = useWindowSize();
@@ -64,6 +65,13 @@ const Home = () => {
             <div className="tag">{leaderboardType}</div>
           </ButtonDiv>
         </div>
+
+        <Bitmap
+          leaderboardType={leaderboardType}
+          leaderboardData={leaderboardData}
+          useTestTemplate={true}
+          // useTestTemplate={process.env.NEXT_PUBLIC_BITMAP_TEST === 'true'}
+        />
 
         <div className="squad-data-section">
           <div className="data-container">

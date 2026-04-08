@@ -1524,6 +1524,62 @@ class PacificaHelper {
     return res.json().catch(() => null);
   };
 
+  /**
+   * Request USDC withdrawal from the trading account.
+   * Docs: `POST /api/v1/account/withdraw` with signing type `withdraw`.
+   * See `https://pacifica.gitbook.io/docs/api-documentation/api/rest-api/account/request-withdrawal.md`.
+   */
+  static withdraw = async (args: {
+    account: string;
+    amount: string;
+    signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+    expiryWindowMs?: number;
+    agentWallet?: string | null;
+  }) => {
+    const timestamp = Date.now();
+    const expiry_window = Math.max(0, Math.floor(args.expiryWindowMs ?? 30000));
+
+    const toSign = sortJsonKeys({
+      timestamp,
+      expiry_window,
+      type: 'withdraw',
+      data: {
+        amount: args.amount,
+      },
+    });
+
+    const compact = JSON.stringify(toSign);
+    const messageBytes = new TextEncoder().encode(compact);
+    const signatureBytes = await args.signMessage(messageBytes);
+    const signature = bs58.encode(signatureBytes);
+
+    const payload = {
+      account: args.account,
+      agent_wallet: args.agentWallet ?? null,
+      signature,
+      timestamp,
+      expiry_window,
+      amount: args.amount,
+    };
+
+    const res = await fetch(`${PACIFICA_API_BASE}/account/withdraw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const result = await res.json().catch(() => null);
+      const msg =
+        result && typeof result === 'object' && 'error' in result
+          ? String((result as { error?: unknown }).error ?? res.status)
+          : `${res.status}`;
+      throw new Error(`withdraw failed: ${msg}`);
+    }
+
+    return res.json().catch(() => null);
+  };
+
   static getPositions = async (args: {
     account: string;
   }): Promise<PacificaPosition[]> => {
