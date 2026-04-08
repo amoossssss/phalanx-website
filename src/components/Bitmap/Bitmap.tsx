@@ -45,6 +45,7 @@ const Bitmap = ({
   const data: BitmapSquadPoints[] = useMemo(() => {
     const source = useTestTemplate ? BITMAP_TEST_LEADERBOARD : leaderboardData;
     if (source === null) return [];
+
     const items = source.items;
     const totalSquadLength = items.length;
     if (totalSquadLength === 0) return [];

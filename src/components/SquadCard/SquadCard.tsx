@@ -1,11 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import JoinSquadDialog from '@/components/JoinSquadDialog/JoinSquadDialog';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
-import ApiService from '@/utils/api/ApiService';
+import Constants from '@/utils/constants/Constants';
 import StringHelper from '@/utils/helpers/StringHelper';
-import useNotification from '@/utils/hooks/useNotification';
 import { useUser } from '@/utils/contexts/UserContext';
 
 import './SquadCard.scss';
@@ -39,29 +40,14 @@ const SquadCard = ({
 }: SquadCardType) => {
   const navigate = useNavigate();
   const { refreshUser, mySquad } = useUser();
-  const { snackbar } = useNotification();
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
 
   const full = memberCount >= 10;
 
-  const handleJoinSquad = useCallback(async () => {
-    try {
-      await ApiService.squad.joinSquadOpen(squadId);
-      await refreshUser();
-      await refreshSquadList();
-      snackbar.success(`Welcome to ${name}`);
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const data = err?.response?.data;
-      const message =
-        data &&
-        typeof data === 'object' &&
-        'error' in data &&
-        typeof (data as { error: unknown }).error === 'string'
-          ? (data as { error: string }).error
-          : 'Could not join squad';
-      snackbar.error(message);
-    }
-  }, [name, refreshSquadList, refreshUser, snackbar, squadId]);
+  const handleJoined = useCallback(async () => {
+    await refreshUser();
+    await refreshSquadList();
+  }, [refreshSquadList, refreshUser]);
 
   const handleViewSquad = () => {
     navigate(`/squad/${squadId}`);
@@ -89,7 +75,7 @@ const SquadCard = ({
           className="squad-name"
           onClick={handleViewSquad}
         >{`> ${name}`}</ButtonDiv>
-        <div className="squad-member-count">{`Member_Count: ${memberCount} / 10`}</div>
+        <div className="squad-member-count">{`Member_Count: ${memberCount} / ${Constants.MAX_MEMBERS}`}</div>
       </div>
 
       <div className="squad-earnings">
@@ -110,11 +96,22 @@ const SquadCard = ({
 
       <ButtonDiv
         className={`join-button ${full ? 'full' : ''}`}
-        onClick={handleJoinSquad}
+        onClick={() => setJoinDialogOpen(true)}
         disabled={full || isMySquad || mySquad !== null}
       >
         {full ? '>Squad_Full<' : isMySquad ? '<My_Squad>' : '<Join_Squad>'}
       </ButtonDiv>
+
+      {joinDialogOpen && (
+        <JoinSquadDialog
+          squadId={squadId}
+          squadName={name}
+          memberCount={memberCount}
+          leader={leader}
+          close={() => setJoinDialogOpen(false)}
+          onJoined={handleJoined}
+        />
+      )}
     </div>
   );
 };

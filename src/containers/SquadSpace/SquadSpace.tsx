@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 import ConfirmKickMemberDialog from '@/components/ConfirmKickMemberDialog/ConfirmKickMemberDialog';
 import EditSquadDialog from '@/components/EditSquadDialog/EditSquadDialog';
+import JoinSquadDialog from '@/components/JoinSquadDialog/JoinSquadDialog';
+import LeaveSquadDialog from '@/components/LeaveSquadDialog/LeaveSquadDialog';
 import Heatmap from '@/components/Heatmap/Heatmap';
 import MemberList from '@/components/MemberList/MemberList';
 import VolumeChart from '@/components/VolumeChart/VolumeChart';
@@ -30,6 +32,8 @@ const SquadSpace = () => {
   const [squad, setSquad] = useState<SquadType | null>(null);
   const [memberList, setMemberList] = useState<MemberType[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [kickMemberTarget, setKickMemberTarget] = useState<MemberType | null>(
     null,
   );
@@ -67,45 +71,19 @@ const SquadSpace = () => {
     await refreshUser();
   }, [handleFetchSquad, refreshUser]);
 
-  const handleJoinSquad = useCallback(async () => {
-    if (!squad) return;
-    try {
-      await ApiService.squad.joinSquadOpen(squad.squadId);
-      await refreshUser();
-      await handleFetchSquad();
-      snackbar.success(`Welcome to ${squad.name}`);
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const data = err?.response?.data;
-      const message =
-        data &&
-        typeof data === 'object' &&
-        'error' in data &&
-        typeof (data as { error: unknown }).error === 'string'
-          ? (data as { error: string }).error
-          : 'Could not join squad';
-      snackbar.error(message);
-    }
-  }, [squad, refreshUser, handleFetchSquad, snackbar]);
+  const handleJoinedSquad = useCallback(async () => {
+    await refreshUser();
+    await handleFetchSquad();
+  }, [refreshUser, handleFetchSquad]);
 
   const handleEditSquad = useCallback(() => {
     setIsEditDialogOpen(true);
   }, []);
 
-  const handleLeaveSquad = useCallback(async () => {
-    if (!squad) return;
-    ApiService.squad
-      .leaveSquad(squad.squadId)
-      .then(() => {
-        snackbar.success(`Left ${squad.name}`);
-        refreshUser();
-        navigate('/squad');
-        return;
-      })
-      .catch(() => {
-        snackbar.error('Something went wrong, please try again.');
-      });
-  }, [squad, refreshUser, snackbar, navigate]);
+  const handleLeftSquad = useCallback(async () => {
+    await refreshUser();
+    navigate('/squad');
+  }, [refreshUser, navigate]);
 
   if (!squad) return null;
 
@@ -156,7 +134,10 @@ const SquadSpace = () => {
 
         <div className="action-button-list">
           {squad && mySquad === null && (
-            <ButtonDiv className="join-button" onClick={handleJoinSquad}>
+            <ButtonDiv
+              className="join-button"
+              onClick={() => setIsJoinDialogOpen(true)}
+            >
               {'<Join_Squad>'}
             </ButtonDiv>
           )}
@@ -166,7 +147,10 @@ const SquadSpace = () => {
             </ButtonDiv>
           )}
           {squad && isMySquad && (
-            <ButtonDiv className="leave-button" onClick={handleLeaveSquad}>
+            <ButtonDiv
+              className="leave-button"
+              onClick={() => setIsLeaveDialogOpen(true)}
+            >
               {'<Leave_Squad>'}
             </ButtonDiv>
           )}
@@ -199,6 +183,28 @@ const SquadSpace = () => {
           member={kickMemberTarget}
           close={() => setKickMemberTarget(null)}
           onKicked={handleKickSucceeded}
+        />
+      )}
+
+      {isJoinDialogOpen && squad && (
+        <JoinSquadDialog
+          squadId={squad.squadId}
+          squadName={squad.name}
+          memberCount={squad.memberCount}
+          leader={squad.leader}
+          close={() => setIsJoinDialogOpen(false)}
+          onJoined={handleJoinedSquad}
+        />
+      )}
+
+      {isLeaveDialogOpen && squad && (
+        <LeaveSquadDialog
+          squadId={squad.squadId}
+          squadName={squad.name}
+          leader={squad.leader}
+          memberCount={squad.memberCount}
+          close={() => setIsLeaveDialogOpen(false)}
+          onLeft={handleLeftSquad}
         />
       )}
 

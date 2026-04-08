@@ -18,8 +18,6 @@ function parseEnvVars() {
     GA_MEASUREMENT_ID: getEnvValue('NEXT_APP_GA_MEASUREMENT_ID', ''),
     // for test
     TEST_MODE: getEnvValue('NEXT_APP_TEST_MODE', 'false'),
-    // local only: set NEXT_APP_HIDE_DEV_IMAGES=true in .env to hide card images while developing
-    HIDE_DEV_IMAGES: getEnvValue('NEXT_APP_HIDE_DEV_IMAGES', 'false'),
     PACIFICA_BUILDER_CODE: getEnvValue(
       'NEXT_APP_PACIFICA_BUILDER_CODE',
       'phalanx',
