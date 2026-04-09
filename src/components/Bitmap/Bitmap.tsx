@@ -268,7 +268,7 @@ const Bitmap = ({
           {'> Resizing_Bitmap...'}
         </div>
       )}
-      {isLeaderboardTypeInitializing && (
+      {(leaderboardData === null || isLeaderboardTypeInitializing) && (
         <div className="bitmap-resizing" aria-live="polite">
           {`> Initializing_${leaderboardType}_bitmap...`}
         </div>

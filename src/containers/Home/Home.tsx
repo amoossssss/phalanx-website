@@ -20,14 +20,7 @@ const Home = () => {
   );
   const [leaderboardData, setLeaderboardData] =
     useState<SquadLeaderboardResponseType | null>(null);
-
-  const fetchDayLeaderboard = () => {
-    ApiService.squad.get24hrLeaderboard().then(setLeaderboardData);
-  };
-
-  const fetchTotalLeaderboard = () => {
-    ApiService.squad.getTotalLeaderboard().then(setLeaderboardData);
-  };
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
 
   const switchTimeframe = () => {
     setLeaderboardType(leaderboardType === '24h' ? 'total' : '24h');
@@ -48,11 +41,14 @@ const Home = () => {
   }, [leaderboardType, leaderboardData]);
 
   useEffect(() => {
-    if (leaderboardType === '24h') {
-      fetchDayLeaderboard();
-    } else {
-      fetchTotalLeaderboard();
-    }
+    setIsLeaderboardLoading(true);
+    const request =
+      leaderboardType === '24h'
+        ? ApiService.squad.get24hrLeaderboard()
+        : ApiService.squad.getTotalLeaderboard();
+    request.then(setLeaderboardData).finally(() => {
+      setIsLeaderboardLoading(false);
+    });
   }, [leaderboardType]);
 
   return (
@@ -92,6 +88,7 @@ const Home = () => {
         <SquadLeaderboard
           leaderboardType={leaderboardType}
           leaderboardData={leaderboardData}
+          isLoading={isLeaderboardLoading}
         />
       </div>
     </div>

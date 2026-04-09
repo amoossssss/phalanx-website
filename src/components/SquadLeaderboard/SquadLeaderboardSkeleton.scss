@@ -1,0 +1,90 @@
+@import 'src/styles/config';
+
+@keyframes squad-leaderboard-skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.squad-leaderboard-skeleton {
+  @include column;
+  gap: 3rem;
+  margin-top: 2rem;
+  pointer-events: none;
+  user-select: none;
+
+  &__shimmer {
+    background: linear-gradient(
+      90deg,
+      $color-neutral 0%,
+      $color-neutral-light 45%,
+      $color-white-20-percent 50%,
+      $color-neutral-light 55%,
+      $color-neutral 100%
+    );
+    background-size: 200% 100%;
+    animation: squad-leaderboard-skeleton-shimmer 2s ease-in-out infinite;
+  }
+
+  &__title {
+    height: 2rem;
+    width: 55%;
+    max-width: 24rem;
+    margin-left: 1rem;
+  }
+
+  &__list {
+    @include column;
+    gap: 2.4rem;
+  }
+
+  &__row {
+    @include row;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 1.2rem 1rem 1rem;
+    background: $color-neutral-light;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  &__avatar {
+    width: 6rem;
+    height: 6rem;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    @include column;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__line {
+    max-width: 100%;
+
+    &--name {
+      width: 80%;
+      height: 4rem;
+    }
+  }
+
+  &__rank {
+    position: absolute;
+    top: -1.6rem;
+    left: -0.5rem;
+    width: 3rem;
+    height: 2.2rem;
+  }
+}
+
+.window-small {
+  .squad-leaderboard-skeleton__title {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+}
