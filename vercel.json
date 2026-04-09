@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api-proxy/:path*",
-      "destination": "TODO"
+      "destination": "https://pacifica-hackathon-backend.vercel.app/:path* "
     },
     {
       "source": "/((?!api-proxy/|_next/|static/|favicon.ico|/images|/icons|terms_of_services.pdf|/locales).*)",
