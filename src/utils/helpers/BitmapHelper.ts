@@ -52,10 +52,7 @@ class BitmapHelper {
     b: { x: number; y: number; w: number; h: number },
   ): boolean {
     return (
-      a.x < b.x + b.w &&
-      b.x < a.x + a.w &&
-      a.y < b.y + b.h &&
-      b.y < a.y + a.h
+      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
     );
   }
 
@@ -72,13 +69,9 @@ class BitmapHelper {
     if (n === 0) return [];
 
     const order = sizes.map((_, i) => i);
-    order.sort(
-      (i, j) =>
-        sizes[j].w * sizes[j].h - sizes[i].w * sizes[i].h,
-    );
+    order.sort((i, j) => sizes[j].w * sizes[j].h - sizes[i].w * sizes[i].h);
 
-    const placed: Array<{ x: number; y: number; w: number; h: number }> =
-      [];
+    const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
     const out: Array<{ x: number; y: number }> = new Array(n);
 
     for (const i of order) {
@@ -98,9 +91,7 @@ class BitmapHelper {
         x = Math.random() * maxX;
         y = Math.random() * maxY;
         const candidate = { x, y, w, h };
-        if (
-          !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
-        ) {
+        if (!placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))) {
           found = true;
           break;
         }
@@ -116,9 +107,7 @@ class BitmapHelper {
         outer: for (let yy = 0; yy <= maxYi; yy += step) {
           for (let xx = 0; xx <= maxXi; xx += step) {
             const candidate = { x: xx, y: yy, w, h };
-            if (
-              !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
-            ) {
+            if (!placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))) {
               x = xx;
               y = yy;
               found = true;
@@ -137,9 +126,7 @@ class BitmapHelper {
           for (let xx = 0; xx <= maxXi; xx++) {
             if (iter++ >= maxFineIterations) break outer;
             const candidate = { x: xx, y: yy, w, h };
-            if (
-              !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
-            ) {
+            if (!placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))) {
               x = xx;
               y = yy;
               found = true;

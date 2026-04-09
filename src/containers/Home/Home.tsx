@@ -69,8 +69,7 @@ const Home = () => {
         <Bitmap
           leaderboardType={leaderboardType}
           leaderboardData={leaderboardData}
-          useTestTemplate={true}
-          // useTestTemplate={process.env.NEXT_PUBLIC_BITMAP_TEST === 'true'}
+          useTestTemplate={process.env.NEXT_PUBLIC_BITMAP_TEST === 'true'}
         />
 
         <div className="squad-data-section">
