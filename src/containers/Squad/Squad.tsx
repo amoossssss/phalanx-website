@@ -25,16 +25,21 @@ const Squad = () => {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const fetchSquadList = useCallback(async () => {
-    setIsSquadListLoading(true);
-    try {
-      const res = await ApiService.squad.getSquadByPage(currentPage);
-      setSquadList(res.squadList);
-      setTotalPage(res.totalPages);
-    } finally {
-      setIsSquadListLoading(false);
-    }
-  }, [currentPage]);
+  const fetchSquadList = useCallback(
+    async ({ silent = false }: { silent: boolean }) => {
+      if (!silent) {
+        setIsSquadListLoading(true);
+      }
+      try {
+        const res = await ApiService.squad.getSquadByPage(currentPage);
+        setSquadList(res.squadList);
+        setTotalPage(res.totalPages);
+      } finally {
+        setIsSquadListLoading(false);
+      }
+    },
+    [currentPage],
+  );
 
   const handleCreateSquad = () => {
     if (mySquad !== null) return;
@@ -48,7 +53,7 @@ const Squad = () => {
 
   useEffect(() => {
     if (isCreateDialogOpen) return;
-    fetchSquadList();
+    fetchSquadList({ silent: true });
   }, [isCreateDialogOpen, fetchSquadList]);
 
   return (
@@ -74,7 +79,7 @@ const Squad = () => {
                 <SquadCard
                   key={item.squadId}
                   isMySquad={mySquad?.squadId === item.squadId}
-                  refreshSquadList={fetchSquadList}
+                  refreshSquadList={() => fetchSquadList({ silent: false })}
                   {...item}
                 />
               ))}
@@ -84,7 +89,7 @@ const Squad = () => {
           <Pagination
             currentPage={currentPage}
             totalPage={totalPage}
-            fetchData={fetchSquadList}
+            fetchData={() => fetchSquadList({ silent: false })}
           />
         )}
       </div>
