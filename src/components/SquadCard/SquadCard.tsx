@@ -6,6 +6,7 @@ import JoinSquadDialog from '@/components/JoinSquadDialog/JoinSquadDialog';
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import Constants from '@/utils/constants/Constants';
+import Media from '@/utils/constants/Media';
 import StringHelper from '@/utils/helpers/StringHelper';
 import { useUser } from '@/utils/contexts/UserContext';
 
@@ -58,7 +59,7 @@ const SquadCard = ({
       <div className="avatar-container">
         <img
           className="avatar"
-          src={avatarUrl}
+          src={avatarUrl ? avatarUrl : Media.favicon}
           alt={'avatar'}
           style={{ boxShadow: `0 0 2px 2px ${color}` }}
         />

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
+import Media from '@/utils/constants/Media';
 import StringHelper from '@/utils/helpers/StringHelper';
 import { SquadLeaderboardResponseType } from '@/utils/api/instances/squad/service';
 import { useUser } from '@/utils/contexts/UserContext';
@@ -48,16 +49,14 @@ const SquadLeaderboard = ({
               key={item.squad.id}
               onClick={() => handleSquadClick(item.squad.id)}
             >
-              {item.squad.avatar_url ? (
-                <img
-                  className="squad-avatar"
-                  src={item.squad.avatar_url}
-                  alt={'squad'}
-                  style={{ boxShadow: `0 0 2px 2px ${item.squad.color}` }}
-                />
-              ) : (
-                <div className="squad-avatar" />
-              )}
+              <img
+                className="squad-avatar"
+                src={
+                  item.squad.avatar_url ? item.squad.avatar_url : Media.favicon
+                }
+                alt={'squad'}
+                style={{ boxShadow: `0 0 2px 2px ${item.squad.color}` }}
+              />
               <div className="info-section">
                 <div className="squad-name">{`> ${item.squad.name}`}</div>
                 <div className="squad-info">
