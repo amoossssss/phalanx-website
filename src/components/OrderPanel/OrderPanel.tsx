@@ -458,6 +458,7 @@ const OrderPanel = ({
         <UpdateLeverageDialog
           symbol={market}
           currentLeverage={leverage}
+          maxLeverage={maxLeverage}
           close={() => setIsLeverageDialogOpen(false)}
           onUpdated={(next) => setLeverage(clamp(next, 1, maxLeverage))}
         />
