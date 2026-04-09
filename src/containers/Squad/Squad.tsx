@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import CreateSquadDialog from '@/components/CreateSquadDialog/CreateSquadDialog';
 import SquadCard from '@/components/SquadCard/SquadCard';
+import SquadCardSkeleton from '@/components/SquadCard/SquadCardSkeleton';
 import Pagination from '@/components/Pagination/Pagination';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
@@ -17,17 +18,22 @@ const Squad = () => {
   const navigate = useNavigate();
   const { mySquad } = useUser();
   const [squadList, setSquadList] = useState<SquadType[]>([]);
+  const [isSquadListLoading, setIsSquadListLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(0);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const fetchSquadList = useCallback(async () => {
-    ApiService.squad.getSquadByPage(currentPage).then((res) => {
+    setIsSquadListLoading(true);
+    try {
+      const res = await ApiService.squad.getSquadByPage(currentPage);
       setSquadList(res.squadList);
-      setTotalPage(res.total);
-    });
+      setTotalPage(res.totalPages);
+    } finally {
+      setIsSquadListLoading(false);
+    }
   }, [currentPage]);
 
   const handleCreateSquad = () => {
@@ -60,21 +66,27 @@ const Squad = () => {
 
       <div className="squad-content">
         <div className="squad-list">
-          {squadList.map((item) => (
-            <SquadCard
-              key={item.squadId}
-              isMySquad={mySquad?.squadId === item.squadId}
-              refreshSquadList={fetchSquadList}
-              {...item}
-            />
-          ))}
+          {isSquadListLoading
+            ? Array.from({ length: 3 }, (_, i) => (
+                <SquadCardSkeleton key={`squad-card-skeleton-${i}`} />
+              ))
+            : squadList.map((item) => (
+                <SquadCard
+                  key={item.squadId}
+                  isMySquad={mySquad?.squadId === item.squadId}
+                  refreshSquadList={fetchSquadList}
+                  {...item}
+                />
+              ))}
         </div>
 
-        <Pagination
-          currentPage={currentPage}
-          totalPage={totalPage}
-          fetchData={fetchSquadList}
-        />
+        {!isSquadListLoading && (
+          <Pagination
+            currentPage={currentPage}
+            totalPage={totalPage}
+            fetchData={fetchSquadList}
+          />
+        )}
       </div>
 
       {isCreateDialogOpen && (

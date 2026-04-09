@@ -135,9 +135,13 @@ const getSquadByPage = async (page: number) => {
     pnl: Number(item.pnl) || 0,
   })) as SquadType[];
 
+  const totalPages = Math.ceil(data.total / data.page_size);
+
   return {
-    total: data.total,
+    page: data.page,
     squadList: squadList,
+    totalPages: totalPages,
+    totalSquads: data.total,
   };
 };
 
