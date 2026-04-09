@@ -37,6 +37,7 @@ const NextConfig = (phase, { defaultConfig }) => {
    */
   const config = {
     // ...defaultConfig,
+    transpilePackages: ['react-tweet'],
     // Next dev with React 18, Always render twice
     // https://github.com/vercel/next.js/issues/35822
     reactStrictMode: isProd,

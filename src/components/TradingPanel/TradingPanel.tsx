@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import CandleChart from '@/components/CandleChart/CandleChart';
+import InsightsDialog from '@/components/InsightsDialog/InsightsDialog';
 import MarketSelector from '@/components/MarketSelector/MarketSelector';
 import OrderBook from '@/components/OrderBook/OrderBook';
 import OrderPanel from '@/components/OrderPanel/OrderPanel';
@@ -77,6 +78,7 @@ const TradingPanel = ({
   );
   const chartAreaRef = useRef<HTMLDivElement | null>(null);
   const [showTimeframe, setShowTimeframe] = useState(true);
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const selectedMarketData = useMemo(() => {
     if (!loadedMarkets) return null;
@@ -284,25 +286,36 @@ const TradingPanel = ({
     <div className="trading-panel">
       <div className="chart-header">
         <div className="market">
-          <div className="market-and-price">
-            <MarketSelector
-              loadedMarkets={loadedMarkets}
-              selectedMarket={selectedMarket}
-              setSelectedMarket={setMarketAndUrl}
-            />
-            <div className="panel-info-item">
-              <div className="panel-info-label">{'Price'}</div>
-              <div className="latest-price">
-                {latestPrice === null
-                  ? '—'
-                  : latestPrice.toLocaleString(undefined, {
-                      minimumFractionDigits: pricePrecision,
-                      maximumFractionDigits: pricePrecision,
-                    })}
+          <div className="market-header-row">
+            <div className="market-and-price">
+              <MarketSelector
+                loadedMarkets={loadedMarkets}
+                selectedMarket={selectedMarket}
+                setSelectedMarket={setMarketAndUrl}
+              />
+              <div className="panel-info-item">
+                <div className="panel-info-label">{'Price'}</div>
+                <div className="latest-price">
+                  {latestPrice === null
+                    ? '—'
+                    : latestPrice.toLocaleString(undefined, {
+                        minimumFractionDigits: pricePrecision,
+                        maximumFractionDigits: pricePrecision,
+                      })}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <ButtonDiv
+          className="insights-header-button"
+          onClick={() => setInsightsOpen(true)}
+          disabled={!selectedMarket}
+        >
+          {'<Insights>'}
+        </ButtonDiv>
+
         <div
           className={`timeframe ${showTimeframe ? '' : 'timeframe--hidden'}`}
         >
@@ -378,6 +391,13 @@ const TradingPanel = ({
           </div>
         )}
       </div>
+
+      {insightsOpen && (
+        <InsightsDialog
+          marketSymbol={selectedMarket}
+          close={() => setInsightsOpen(false)}
+        />
+      )}
     </div>
   );
 };

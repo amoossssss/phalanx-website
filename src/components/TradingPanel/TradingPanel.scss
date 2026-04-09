@@ -24,6 +24,13 @@
       @include font-16-bold;
       color: $color-primary;
 
+      .market-header-row {
+        @include row;
+        align-items: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+      }
+
       .market-and-price {
         @include row;
         align-items: center;
@@ -44,6 +51,27 @@
       .latest-price {
         @include font-24;
         line-height: 1;
+      }
+    }
+
+    .insights-header-button {
+      @include font-14;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid $color-primary-dark;
+      background: transparent;
+      color: $color-primary;
+      cursor: pointer;
+      white-space: nowrap;
+      margin-left: auto;
+
+      &:hover:not(:disabled) {
+        border-color: $color-primary;
+        background: rgba(0, 255, 252, 0.08);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
     }
 

@@ -16,6 +16,8 @@ enum ApiKey {
   page = 'page',
   wallet = 'wallet',
   alias = 'alias',
+  insight = 'insight',
+  token = 'token',
 }
 
 export default ApiKey;
