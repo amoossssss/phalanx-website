@@ -122,19 +122,27 @@ const Bitmap = ({
 
       lastLayoutSizeRef.current = { w: cw, h: ch };
 
-      const initialRects: SquadRectangle[] = data.map((item) => {
-        const { w, h } = BitmapHelper.computeRectangleSize(
+      const sizes = data.map((item) =>
+        BitmapHelper.computeRectangleSize(
           item.total_points,
           totalPointsAllSquads,
           cw,
           ch,
-        );
-        const maxX = Math.max(0, cw - w);
-        const maxY = Math.max(0, ch - h);
+        ),
+      );
+      const positions = BitmapHelper.computeNonOverlappingInitialPositions(
+        sizes,
+        cw,
+        ch,
+      );
+
+      const initialRects: SquadRectangle[] = data.map((item, idx) => {
+        const { w, h } = sizes[idx];
+        const { x, y } = positions[idx];
         return {
           id: item.squad.id,
-          x: Math.random() * maxX,
-          y: Math.random() * maxY,
+          x,
+          y,
           vx: (Math.random() - 0.5) * 2,
           vy: (Math.random() - 0.5) * 2,
           w,

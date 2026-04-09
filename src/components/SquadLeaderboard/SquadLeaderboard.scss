@@ -2,7 +2,7 @@
 
 .squad-leaderboard {
   @include column;
-  gap: 2rem;
+  gap: 3rem;
   margin-top: 2rem;
 
   .leaderboard-title {
@@ -14,7 +14,7 @@
 
   .squad-list {
     @include column;
-    gap: 1rem;
+    gap: 2.4rem;
   }
 
   .squad-leaderboard-content {

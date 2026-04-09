@@ -43,6 +43,124 @@ class BitmapHelper {
 
   static readonly RESIZE_DEBOUNCE_MS = 500;
 
+  /** Random tries per rectangle before falling back to a coarse grid scan. */
+  private static readonly NON_OVERLAP_RANDOM_ATTEMPTS = 2500;
+
+  /** Axis-aligned rectangle overlap (touching edges is not overlap). */
+  static rectsOverlap(
+    a: { x: number; y: number; w: number; h: number },
+    b: { x: number; y: number; w: number; h: number },
+  ): boolean {
+    return (
+      a.x < b.x + b.w &&
+      b.x < a.x + a.w &&
+      a.y < b.y + b.h &&
+      b.y < a.y + a.h
+    );
+  }
+
+  /**
+   * Places each rectangle at (x, y) so no two overlap (largest area first).
+   * Uses random sampling, then a grid scan; if no slot exists, falls back to (0,0)-biased positions.
+   */
+  static computeNonOverlappingInitialPositions(
+    sizes: Array<{ w: number; h: number }>,
+    cw: number,
+    ch: number,
+  ): Array<{ x: number; y: number }> {
+    const n = sizes.length;
+    if (n === 0) return [];
+
+    const order = sizes.map((_, i) => i);
+    order.sort(
+      (i, j) =>
+        sizes[j].w * sizes[j].h - sizes[i].w * sizes[i].h,
+    );
+
+    const placed: Array<{ x: number; y: number; w: number; h: number }> =
+      [];
+    const out: Array<{ x: number; y: number }> = new Array(n);
+
+    for (const i of order) {
+      const { w, h } = sizes[i];
+      const maxX = Math.max(0, cw - w);
+      const maxY = Math.max(0, ch - h);
+
+      let x = 0;
+      let y = 0;
+      let found = false;
+
+      for (
+        let attempt = 0;
+        attempt < BitmapHelper.NON_OVERLAP_RANDOM_ATTEMPTS;
+        attempt++
+      ) {
+        x = Math.random() * maxX;
+        y = Math.random() * maxY;
+        const candidate = { x, y, w, h };
+        if (
+          !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
+        ) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        const step = Math.max(
+          1,
+          Math.min(6, Math.floor(Math.min(cw, ch) / 120)),
+        );
+        const maxXi = Math.floor(maxX);
+        const maxYi = Math.floor(maxY);
+        outer: for (let yy = 0; yy <= maxYi; yy += step) {
+          for (let xx = 0; xx <= maxXi; xx += step) {
+            const candidate = { x: xx, y: yy, w, h };
+            if (
+              !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
+            ) {
+              x = xx;
+              y = yy;
+              found = true;
+              break outer;
+            }
+          }
+        }
+      }
+
+      if (!found) {
+        const maxXi = Math.floor(maxX);
+        const maxYi = Math.floor(maxY);
+        let iter = 0;
+        const maxFineIterations = 60_000;
+        outer: for (let yy = 0; yy <= maxYi; yy++) {
+          for (let xx = 0; xx <= maxXi; xx++) {
+            if (iter++ >= maxFineIterations) break outer;
+            const candidate = { x: xx, y: yy, w, h };
+            if (
+              !placed.some((p) => BitmapHelper.rectsOverlap(candidate, p))
+            ) {
+              x = xx;
+              y = yy;
+              found = true;
+              break outer;
+            }
+          }
+        }
+      }
+
+      if (!found) {
+        x = Math.min(maxX, (placed.length % 8) * 12);
+        y = Math.min(maxY, Math.floor(placed.length / 8) * 12);
+      }
+
+      placed.push({ x, y, w, h });
+      out[i] = { x, y };
+    }
+
+    return out;
+  }
+
   /**
    * Square side length from point share: `area_i = (total_points / totalPointsAllSquads) * (W*H*fill)`,
    * `side = sqrt(area_i)`, clamped so rects stay small vs the container.
