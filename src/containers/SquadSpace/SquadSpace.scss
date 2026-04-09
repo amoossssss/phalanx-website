@@ -8,6 +8,17 @@
   box-sizing: border-box;
   overflow: hidden;
 
+  &--loading {
+    @include center-item;
+    min-height: 50svh;
+  }
+
+  &-loading-message {
+    @include font-24;
+    color: $color-primary;
+    text-shadow: $text-shadow-primary;
+  }
+
   .squad-info-container {
     @include row;
     align-items: center;

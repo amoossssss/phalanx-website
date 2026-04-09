@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,6 +31,7 @@ const SquadSpace = () => {
 
   const [squad, setSquad] = useState<SquadType | null>(null);
   const [memberList, setMemberList] = useState<MemberType[]>([]);
+  const [isSquadLoading, setIsSquadLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
@@ -45,18 +46,40 @@ const SquadSpace = () => {
       (item) => item.walletAddress === userAddress && item.role === 'captain',
     ) !== -1;
 
-  const handleFetchSquad = useCallback(async () => {
+  const handleFetchSquad = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      if (!id) return;
+      if (!opts?.silent) {
+        setIsSquadLoading(true);
+      }
+      try {
+        const squadInfo = await ApiService.squad.getSquadById(id);
+        if (squadInfo) {
+          setSquad(squadInfo.squad);
+          setMemberList(squadInfo.members);
+        } else {
+          setSquad(null);
+          setMemberList([]);
+        }
+      } finally {
+        if (!opts?.silent) {
+          setIsSquadLoading(false);
+        }
+      }
+    },
+    [id],
+  );
+
+  useLayoutEffect(() => {
     if (!id) return;
-    const squadInfo = await ApiService.squad.getSquadById(id);
-    if (squadInfo) {
-      setSquad(squadInfo.squad);
-      setMemberList(squadInfo.members);
-    }
+    setSquad(null);
+    setMemberList([]);
+    setIsSquadLoading(true);
   }, [id]);
 
   useEffect(() => {
     if (id) {
-      handleFetchSquad();
+      void handleFetchSquad();
       return;
     }
     navigate('/squad');
@@ -67,13 +90,13 @@ const SquadSpace = () => {
   }, []);
 
   const handleKickSucceeded = useCallback(async () => {
-    await handleFetchSquad();
+    await handleFetchSquad({ silent: true });
     await refreshUser();
   }, [handleFetchSquad, refreshUser]);
 
   const handleJoinedSquad = useCallback(async () => {
     await refreshUser();
-    await handleFetchSquad();
+    await handleFetchSquad({ silent: true });
   }, [refreshUser, handleFetchSquad]);
 
   const handleEditSquad = useCallback(() => {
@@ -84,6 +107,16 @@ const SquadSpace = () => {
     await refreshUser();
     navigate('/squad');
   }, [refreshUser, navigate]);
+
+  if (isSquadLoading) {
+    return (
+      <div className="squad-space squad-space--loading">
+        <div className="squad-space-loading-message" aria-live="polite">
+          {'> Loading_Squad...'}
+        </div>
+      </div>
+    );
+  }
 
   if (!squad) return null;
 
@@ -212,7 +245,7 @@ const SquadSpace = () => {
         <EditSquadDialog
           squad={squad}
           close={() => setIsEditDialogOpen(false)}
-          onSaved={handleFetchSquad}
+          onSaved={() => handleFetchSquad({ silent: true })}
         />
       )}
     </div>
