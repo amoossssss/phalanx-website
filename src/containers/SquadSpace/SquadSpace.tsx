@@ -24,7 +24,7 @@ import './SquadSpace.scss';
 const SquadSpace = () => {
   const { snackbar } = useNotification();
   const { mySquad, refreshUser } = useUser();
-  const { userAddress } = useAuth();
+  const { userAddress, isLogin } = useAuth();
 
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -85,6 +85,14 @@ const SquadSpace = () => {
     navigate('/squad');
   }, [id, navigate, handleFetchSquad]);
 
+  const handleJoinSquad = () => {
+    if (!isLogin) {
+      snackbar.error('Connect wallet to join squad.');
+      return;
+    }
+    setIsJoinDialogOpen(true);
+  };
+
   const handleRequestKickMember = useCallback((member: MemberType) => {
     setKickMemberTarget(member);
   }, []);
@@ -108,145 +116,150 @@ const SquadSpace = () => {
     navigate('/squad');
   }, [refreshUser, navigate]);
 
-  if (isSquadLoading) {
-    return (
-      <div className="squad-space squad-space--loading">
-        <div className="squad-space-loading-message" aria-live="polite">
-          {'> Loading_Squad...'}
-        </div>
-      </div>
-    );
-  }
-
-  if (!squad) return null;
+  if (!isSquadLoading && !squad) return null;
 
   return (
     <div className="squad-space">
-      <div
-        className="squad-info-container"
-        style={{ borderColor: squad.color }}
-      >
-        {squad.avatarUrl && (
-          <img
-            className="squad-avatar-container"
-            src={squad.avatarUrl}
-            alt="avatar"
-            style={{ boxShadow: `0 0 2px 2px ${squad.color}` }}
-          />
-        )}
-
-        <div className="squad-name-container">
-          <div className="squad-name">{`${squad.name}`}</div>
-          <div className="leader">
-            <div>{'Leader: '}</div>
-            <div className="leader-name">{`@${StringHelper.truncateName(
-              squad.leader,
-            )}`}</div>
+      {isSquadLoading && (
+        <div
+          className="squad-space__loading-layer"
+          aria-live="polite"
+          aria-busy={true}
+        >
+          <div className="squad-space-loading-message">
+            {'> Loading_Squad...'}
           </div>
         </div>
+      )}
 
-        <div className="squad-earnings">
-          <div className="earnings-item volume">
-            <div>{'Total_Volume'}</div>
-            <div className="earnings-number">
-              {StringHelper.formatCompactNumber(squad.volume)}
+      {squad && (
+        <div className="squad-space__content">
+          <div
+            className="squad-info-container"
+            style={{ borderColor: squad.color }}
+          >
+            {squad.avatarUrl && (
+              <img
+                className="squad-avatar-container"
+                src={squad.avatarUrl}
+                alt="avatar"
+                style={{ boxShadow: `0 0 2px 2px ${squad.color}` }}
+              />
+            )}
+
+            <div className="squad-name-container">
+              <div className="squad-name">{`${squad.name}`}</div>
+              <div className="leader">
+                <div>{'Leader: '}</div>
+                <div className="leader-name">{`@${StringHelper.truncateName(
+                  squad.leader,
+                )}`}</div>
+              </div>
+            </div>
+
+            <div className="squad-earnings">
+              <div className="earnings-item volume">
+                <div>{'Total_Volume'}</div>
+                <div className="earnings-number">
+                  {StringHelper.formatCompactNumber(squad.volume)}
+                </div>
+              </div>
+
+              <div className="earnings-item pnl">
+                <div>{'Total_PnL'}</div>
+                <div
+                  className={`earnings-number ${
+                    squad.pnl < 0 ? 'negative' : ''
+                  }`}
+                >
+                  {StringHelper.formatCompactNumber(squad.pnl)}
+                </div>
+              </div>
+            </div>
+
+            {isMySquad && <div className="my-squad">{'<My_Squad>'}</div>}
+
+            <div className="action-button-list">
+              {squad && mySquad === null && (
+                <ButtonDiv className="join-button" onClick={handleJoinSquad}>
+                  {'<Join_Squad>'}
+                </ButtonDiv>
+              )}
+              {squad && isLeader && (
+                <ButtonDiv className="edit-button" onClick={handleEditSquad}>
+                  {'<Edit_Squad>'}
+                </ButtonDiv>
+              )}
+              {squad && isMySquad && (
+                <ButtonDiv
+                  className="leave-button"
+                  onClick={() => setIsLeaveDialogOpen(true)}
+                >
+                  {'<Leave_Squad>'}
+                </ButtonDiv>
+              )}
             </div>
           </div>
 
-          <div className="earnings-item pnl">
-            <div>{'Total_PnL'}</div>
-            <div
-              className={`earnings-number ${squad.pnl < 0 ? 'negative' : ''}`}
-            >
-              {StringHelper.formatCompactNumber(squad.pnl)}
+          <div className="squad-content">
+            <div className="left-section">
+              <MemberList
+                members={memberList}
+                isLeader={isLeader}
+                currentWalletAddress={userAddress}
+                onKickMember={handleRequestKickMember}
+                squadColor={squad.color}
+              />
+            </div>
+            <div className="right-section">
+              <Heatmap
+                squadId={squad.squadId}
+                memberCount={squad.memberCount}
+                squadColor={squad.color}
+              />
+              <VolumeChart members={memberList} squadColor={squad.color} />
             </div>
           </div>
-        </div>
 
-        {isMySquad && <div className="my-squad">{'<My_Squad>'}</div>}
-
-        <div className="action-button-list">
-          {squad && mySquad === null && (
-            <ButtonDiv
-              className="join-button"
-              onClick={() => setIsJoinDialogOpen(true)}
-            >
-              {'<Join_Squad>'}
-            </ButtonDiv>
+          {kickMemberTarget && id && (
+            <ConfirmKickMemberDialog
+              squadId={id}
+              member={kickMemberTarget}
+              close={() => setKickMemberTarget(null)}
+              onKicked={handleKickSucceeded}
+            />
           )}
-          {squad && isLeader && (
-            <ButtonDiv className="edit-button" onClick={handleEditSquad}>
-              {'<Edit_Squad>'}
-            </ButtonDiv>
+
+          {isJoinDialogOpen && squad && (
+            <JoinSquadDialog
+              squadId={squad.squadId}
+              squadName={squad.name}
+              memberCount={squad.memberCount}
+              leader={squad.leader}
+              close={() => setIsJoinDialogOpen(false)}
+              onJoined={handleJoinedSquad}
+            />
           )}
-          {squad && isMySquad && (
-            <ButtonDiv
-              className="leave-button"
-              onClick={() => setIsLeaveDialogOpen(true)}
-            >
-              {'<Leave_Squad>'}
-            </ButtonDiv>
+
+          {isLeaveDialogOpen && squad && (
+            <LeaveSquadDialog
+              squadId={squad.squadId}
+              squadName={squad.name}
+              leader={squad.leader}
+              memberCount={squad.memberCount}
+              close={() => setIsLeaveDialogOpen(false)}
+              onLeft={handleLeftSquad}
+            />
+          )}
+
+          {isEditDialogOpen && (
+            <EditSquadDialog
+              squad={squad}
+              close={() => setIsEditDialogOpen(false)}
+              onSaved={() => handleFetchSquad({ silent: true })}
+            />
           )}
         </div>
-      </div>
-
-      <div className="squad-content">
-        <div className="left-section">
-          <MemberList
-            members={memberList}
-            isLeader={isLeader}
-            currentWalletAddress={userAddress}
-            onKickMember={handleRequestKickMember}
-            squadColor={squad.color}
-          />
-        </div>
-        <div className="right-section">
-          <Heatmap
-            squadId={squad.squadId}
-            memberCount={squad.memberCount}
-            squadColor={squad.color}
-          />
-          <VolumeChart members={memberList} squadColor={squad.color} />
-        </div>
-      </div>
-
-      {kickMemberTarget && id && (
-        <ConfirmKickMemberDialog
-          squadId={id}
-          member={kickMemberTarget}
-          close={() => setKickMemberTarget(null)}
-          onKicked={handleKickSucceeded}
-        />
-      )}
-
-      {isJoinDialogOpen && squad && (
-        <JoinSquadDialog
-          squadId={squad.squadId}
-          squadName={squad.name}
-          memberCount={squad.memberCount}
-          leader={squad.leader}
-          close={() => setIsJoinDialogOpen(false)}
-          onJoined={handleJoinedSquad}
-        />
-      )}
-
-      {isLeaveDialogOpen && squad && (
-        <LeaveSquadDialog
-          squadId={squad.squadId}
-          squadName={squad.name}
-          leader={squad.leader}
-          memberCount={squad.memberCount}
-          close={() => setIsLeaveDialogOpen(false)}
-          onLeft={handleLeftSquad}
-        />
-      )}
-
-      {isEditDialogOpen && (
-        <EditSquadDialog
-          squad={squad}
-          close={() => setIsEditDialogOpen(false)}
-          onSaved={() => handleFetchSquad({ silent: true })}
-        />
       )}
     </div>
   );

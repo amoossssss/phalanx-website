@@ -7,16 +7,29 @@
   width: 100svw;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+  min-height: 50svh;
 
-  &--loading {
+  &__loading-layer {
     @include center-item;
-    min-height: 50svh;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 3rem;
+    box-sizing: border-box;
   }
 
   &-loading-message {
     @include font-24;
     color: $color-primary;
     text-shadow: $text-shadow-primary;
+  }
+
+  &__content {
+    @include column;
+    gap: 2rem;
+    width: 100%;
+    animation: squad-space-content-in 0.55s ease 0.07s both;
   }
 
   .squad-info-container {
@@ -111,17 +124,29 @@
         background: $color-tertiary;
         padding: 0.3rem;
         color: $color-neutral;
+
+        &:hover {
+          @include mini-scale(1.02);
+        }
       }
 
       .edit-button {
         background: $color-tertiary;
         padding: 0.3rem;
         color: $color-neutral;
+
+        &:hover {
+          @include mini-scale(1.02);
+        }
       }
 
       .leave-button {
         background: $color-secondary;
         padding: 0.3rem;
+
+        &:hover {
+          @include mini-scale(1.02);
+        }
       }
     }
   }
@@ -140,6 +165,26 @@
       flex: 1;
       overflow: auto;
     }
+  }
+}
+
+@keyframes squad-space-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squad-space__content {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 

@@ -9,14 +9,19 @@ import Pagination from '@/components/Pagination/Pagination';
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import ApiService from '@/utils/api/ApiService';
+import useNotification from '@/utils/hooks/useNotification';
 import { SquadType } from '@/utils/constants/Types';
 import { useUser } from '@/utils/contexts/UserContext';
+import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './Squad.scss';
 
 const Squad = () => {
   const navigate = useNavigate();
   const { mySquad } = useUser();
+  const { isLogin } = useAuth();
+  const { snackbar } = useNotification();
+
   const [squadList, setSquadList] = useState<SquadType[]>([]);
   const [isSquadListLoading, setIsSquadListLoading] = useState(true);
 
@@ -42,6 +47,10 @@ const Squad = () => {
   );
 
   const handleCreateSquad = () => {
+    if (!isLogin) {
+      snackbar.error('Connect wallet to create squad.');
+      return;
+    }
     if (mySquad !== null) return;
     setIsCreateDialogOpen(true);
   };
@@ -71,11 +80,23 @@ const Squad = () => {
 
       <div className="squad-content">
         <div className="squad-list">
-          {isSquadListLoading
-            ? Array.from({ length: 3 }, (_, i) => (
-                <SquadCardSkeleton key={`squad-card-skeleton-${i}`} />
-              ))
-            : squadList.map((item) => (
+          <div
+            className={`squad-list__skeleton${
+              isSquadListLoading ? ' squad-list__skeleton--visible' : ''
+            }`}
+            aria-hidden={!isSquadListLoading}
+          >
+            {Array.from({ length: 3 }, (_, i) => (
+              <SquadCardSkeleton key={`squad-card-skeleton-${i}`} />
+            ))}
+          </div>
+          <div
+            className={`squad-list__cards${
+              !isSquadListLoading ? ' squad-list__cards--visible' : ''
+            }`}
+          >
+            {!isSquadListLoading &&
+              squadList.map((item) => (
                 <SquadCard
                   key={item.squadId}
                   isMySquad={mySquad?.squadId === item.squadId}
@@ -83,15 +104,22 @@ const Squad = () => {
                   {...item}
                 />
               ))}
+          </div>
         </div>
 
-        {!isSquadListLoading && (
-          <Pagination
-            currentPage={currentPage}
-            totalPage={totalPage}
-            fetchData={() => fetchSquadList({ silent: false })}
-          />
-        )}
+        <div
+          className={`squad-pagination-wrap${
+            !isSquadListLoading ? ' squad-pagination-wrap--visible' : ''
+          }`}
+        >
+          {!isSquadListLoading && (
+            <Pagination
+              currentPage={currentPage}
+              totalPage={totalPage}
+              fetchData={() => fetchSquadList({ silent: false })}
+            />
+          )}
+        </div>
       </div>
 
       {isCreateDialogOpen && (

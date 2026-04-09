@@ -51,10 +51,91 @@
     gap: 4rem;
 
     .squad-list {
-      @include row;
-      gap: 2rem;
-      flex-wrap: wrap;
+      position: relative;
+      min-height: 28rem;
+      width: 100%;
+
+      &__skeleton {
+        @include row;
+        gap: 2rem;
+        flex-wrap: wrap;
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        transition:
+          opacity 0.45s ease,
+          visibility 0.45s ease;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+
+        &--visible {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+      }
+
+      &__cards {
+        @include row;
+        gap: 2rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 0;
+        opacity: 0;
+
+        &--visible {
+          animation: squad-list-cards-in 0.55s ease 0.08s both;
+        }
+      }
     }
+
+    .squad-pagination-wrap {
+      opacity: 0;
+
+      &--visible {
+        animation: squad-pagination-in 0.45s ease 0.12s both;
+      }
+    }
+  }
+}
+
+@keyframes squad-list-cards-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes squad-pagination-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squad .squad-content .squad-list__skeleton {
+    transition-duration: 0.01ms !important;
+  }
+
+  .squad .squad-content .squad-list__cards--visible,
+  .squad .squad-content .squad-pagination-wrap--visible {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -106,6 +187,24 @@
         @include column;
         align-items: center;
         gap: 2rem;
+        min-height: 40rem;
+
+        &__skeleton {
+          @include column;
+          align-items: center;
+          gap: 2rem;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+        }
+
+        &__cards {
+          @include column;
+          align-items: center;
+          gap: 2rem;
+          width: 100%;
+        }
       }
     }
   }

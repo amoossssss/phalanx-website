@@ -8,7 +8,9 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import Constants from '@/utils/constants/Constants';
 import Media from '@/utils/constants/Media';
 import StringHelper from '@/utils/helpers/StringHelper';
+import useNotification from '@/utils/hooks/useNotification';
 import { useUser } from '@/utils/contexts/UserContext';
+import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './SquadCard.scss';
 
@@ -41,9 +43,20 @@ const SquadCard = ({
 }: SquadCardType) => {
   const navigate = useNavigate();
   const { refreshUser, mySquad } = useUser();
+  const { isLogin } = useAuth();
+  const { snackbar } = useNotification();
+
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
 
   const full = memberCount >= 10;
+
+  const handleJoinSquad = () => {
+    if (!isLogin) {
+      snackbar.error('Connect wallet to join squad.');
+      return;
+    }
+    setJoinDialogOpen(true);
+  };
 
   const handleJoined = useCallback(async () => {
     await refreshUser();
@@ -97,7 +110,7 @@ const SquadCard = ({
 
       <ButtonDiv
         className={`join-button ${full ? 'full' : ''}`}
-        onClick={() => setJoinDialogOpen(true)}
+        onClick={handleJoinSquad}
         disabled={full || isMySquad || mySquad !== null}
       >
         {full ? '>Squad_Full<' : isMySquad ? '<My_Squad>' : '<Join_Squad>'}
