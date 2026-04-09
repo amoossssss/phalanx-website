@@ -3,12 +3,12 @@
 .bitmap {
   position: relative;
   overflow: hidden;
-  max-width: 50rem;
+  //max-width: 50rem;
   max-height: 50rem;
   aspect-ratio: 1;
-  width: 100%;
+  width: 90%;
   margin: 0 auto;
-  background-size: contain;
+  background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   box-shadow: 0 0 5px 5px rgba(143, 245, 255, 0.5);
