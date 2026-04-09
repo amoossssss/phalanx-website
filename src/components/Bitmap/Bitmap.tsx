@@ -38,7 +38,10 @@ const Bitmap = ({
 
   const [rectangles, setRectangles] = useState<SquadRectangle[]>([]);
   const [isResizing, setIsResizing] = useState(false);
+  const [isLeaderboardTypeInitializing, setIsLeaderboardTypeInitializing] =
+    useState(false);
 
+  const isFirstLeaderboardTypeRef = useRef(true);
   const lastLayoutSizeRef = useRef({ w: 0, h: 0 });
   const resizeDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -78,6 +81,18 @@ const Bitmap = ({
     () => data.reduce((sum, row) => sum + row.total_points, 0),
     [data],
   );
+
+  useEffect(() => {
+    if (isFirstLeaderboardTypeRef.current) {
+      isFirstLeaderboardTypeRef.current = false;
+      return;
+    }
+    setIsLeaderboardTypeInitializing(true);
+    const id = window.setTimeout(() => {
+      setIsLeaderboardTypeInitializing(false);
+    }, 600);
+    return () => window.clearTimeout(id);
+  }, [leaderboardType]);
 
   // 1. Size + position rectangles from points; re-run when the container size changes.
   // ResizeObserver debounce 500ms after the last size change; during debounce show overlay and no rectangles.
@@ -245,7 +260,13 @@ const Bitmap = ({
           Resizing_Bitmap
         </div>
       )}
+      {isLeaderboardTypeInitializing && (
+        <div className="bitmap-resizing" aria-live="polite">
+          {`Initializing_${leaderboardType}_bitmap`}
+        </div>
+      )}
       {!isResizing &&
+        !isLeaderboardTypeInitializing &&
         rectangles.map((r) => (
           <NavLink
             key={r.id}
