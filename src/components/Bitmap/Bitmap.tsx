@@ -265,12 +265,12 @@ const Bitmap = ({
     >
       {isResizing && (
         <div className="bitmap-resizing" aria-live="polite">
-          Resizing_Bitmap
+          {'> Resizing_Bitmap...'}
         </div>
       )}
       {isLeaderboardTypeInitializing && (
         <div className="bitmap-resizing" aria-live="polite">
-          {`Initializing_${leaderboardType}_bitmap`}
+          {`> Initializing_${leaderboardType}_bitmap...`}
         </div>
       )}
       {!isResizing &&

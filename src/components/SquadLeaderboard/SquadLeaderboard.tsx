@@ -31,12 +31,62 @@ const SquadLeaderboard = ({
       .slice(0, 5);
   }, [leaderboardData]);
 
+  const mySquadInfo = useMemo(() => {
+    if (!mySquad || !leaderboardData) return null;
+    const mySquadIndex = leaderboardData.items.findIndex(
+      (item) => item.squad.id === mySquad.squadId,
+    );
+    if (mySquadIndex === -1) return null;
+    const mySquadData = leaderboardData.items[mySquadIndex];
+    return {
+      pnl: isDay ? mySquadData.pnl_1d : mySquadData.pnl_total,
+      volume: isDay ? mySquadData.volume_1d : mySquadData.volume_total,
+      rank: mySquadIndex + 1,
+    };
+  }, [mySquad, leaderboardData, isDay]);
+
   const handleSquadClick = (squadId: string) => {
     navigate(`/squad/${squadId}`);
   };
 
   return (
     <div className="squad-leaderboard">
+      {mySquad && mySquadInfo !== null && (
+        <>
+          <div className="leaderboard-title">{'<My_Squad_Rankings>'}</div>
+          <ButtonDiv
+            className="squad-leaderboard-content"
+            onClick={() => handleSquadClick(mySquad.squadId)}
+          >
+            <img
+              className="squad-avatar"
+              src={mySquad.avatarUrl ? mySquad.avatarUrl : Media.favicon}
+              alt={'squad'}
+              style={{ boxShadow: `0 0 2px 2px ${mySquad.color}` }}
+            />
+            <div className="info-section">
+              <div className="squad-name">{`> ${mySquad.name}`}</div>
+              <div className="squad-info">
+                <div className="info-title">{`${leaderboardType}_Volume:`}</div>
+                <div className="info-content volume">
+                  {`${StringHelper.formatCompactNumber(mySquadInfo.volume)}`}
+                </div>
+              </div>
+              <div className="squad-info">
+                <div className="info-title">{`${leaderboardType}_PnL:`}</div>
+                <div
+                  className={`info-content ${
+                    mySquadInfo.pnl < 0 ? 'negative' : ''
+                  }`}
+                >
+                  {`${StringHelper.formatCompactNumber(mySquadInfo.pnl)}`}
+                </div>
+              </div>
+            </div>
+            <div className="rank-tag">{`#0${mySquadInfo.rank}`}</div>
+          </ButtonDiv>
+        </>
+      )}
       <div className="leaderboard-title">{`<${leaderboardType}_Squad_Rankings>`}</div>
       <div className="squad-list">
         {data.map((item, index) => {
