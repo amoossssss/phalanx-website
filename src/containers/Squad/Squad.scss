@@ -2,7 +2,7 @@
 
 .squad {
   @include column;
-  gap: 2rem;
+  gap: 1rem;
   padding: 3rem;
   width: 100svw;
   box-sizing: border-box;
@@ -45,10 +45,48 @@
     }
   }
 
+  .squad-order-toolbar {
+    @include row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    &__label {
+      @include font-14;
+      color: $color-primary;
+    }
+
+    &__options {
+      @include row;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .squad-order-option {
+      @include font-12;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid $color-primary-dark;
+      background: transparent;
+      color: $color-white-70-percent;
+
+      &:hover {
+        @include mini-scale(1.02);
+        border-color: $color-primary;
+      }
+
+      &--active {
+        border-color: $color-primary;
+        color: $color-primary;
+        background: rgba(143, 245, 255, 0.08);
+      }
+    }
+  }
+
   .squad-content {
     @include column;
     justify-content: space-between;
     gap: 4rem;
+    margin-top: 1rem;
 
     .squad-list {
       position: relative;
@@ -142,6 +180,10 @@
 .window-small {
   .squad {
     padding: 3rem 2rem;
+
+    .squad-order-toolbar {
+      gap: 1rem;
+    }
 
     .squad-title-container {
       @include row;

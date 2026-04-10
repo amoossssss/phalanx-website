@@ -14,6 +14,7 @@ enum ApiKey {
   my = 'my',
   list = 'list',
   page = 'page',
+  orderBy = 'order_by',
   wallet = 'wallet',
   alias = 'alias',
   insight = 'insight',

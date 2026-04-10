@@ -9,6 +9,7 @@ import Pagination from '@/components/Pagination/Pagination';
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import ApiService from '@/utils/api/ApiService';
+import type { SquadListOrderBy } from '@/utils/api/instances/squad/service';
 import useNotification from '@/utils/hooks/useNotification';
 import { SquadType } from '@/utils/constants/Types';
 import { useUser } from '@/utils/contexts/UserContext';
@@ -27,6 +28,7 @@ const Squad = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
+  const [orderBy, setOrderBy] = useState<SquadListOrderBy>('time');
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -36,14 +38,24 @@ const Squad = () => {
         setIsSquadListLoading(true);
       }
       try {
-        const res = await ApiService.squad.getSquadByPage(currentPage);
+        const res = await ApiService.squad.getSquadByPage(currentPage, orderBy);
         setSquadList(res.squadList);
         setTotalPage(res.totalPages);
       } finally {
         setIsSquadListLoading(false);
       }
     },
-    [currentPage],
+    [currentPage, orderBy],
+  );
+
+  const handleOrderBy = useCallback(
+    (next: SquadListOrderBy) => {
+      if (next === orderBy) return;
+      setIsSquadListLoading(true);
+      setOrderBy(next);
+      setCurrentPage(1);
+    },
+    [orderBy],
   );
 
   const handleCreateSquad = () => {
@@ -76,6 +88,33 @@ const Squad = () => {
           {mySquad ? mySquad.name : '<Create_Squad>'}
           {mySquad && <div className="tag">{'<My_Squad>'}</div>}
         </ButtonDiv>
+      </div>
+
+      <div className="squad-order-toolbar">
+        <div className="squad-order-toolbar__label">{'<Order_by>'}</div>
+        <div
+          className="squad-order-toolbar__options"
+          role="group"
+          aria-label="Order squad list by"
+        >
+          {(
+            [
+              { key: 'time' as const, label: 'time' },
+              { key: 'volume' as const, label: 'volume' },
+              { key: 'pnl' as const, label: 'pnl' },
+            ] as const
+          ).map(({ key, label }) => (
+            <ButtonDiv
+              key={key}
+              className={`squad-order-option${
+                orderBy === key ? ' squad-order-option--active' : ''
+              }`}
+              onClick={() => handleOrderBy(key)}
+            >
+              {`<${label}>`}
+            </ButtonDiv>
+          ))}
+        </div>
       </div>
 
       <div className="squad-content">
@@ -116,7 +155,9 @@ const Squad = () => {
             <Pagination
               currentPage={currentPage}
               totalPage={totalPage}
-              fetchData={() => fetchSquadList({ silent: false })}
+              fetchData={(page) => {
+                setCurrentPage(page);
+              }}
             />
           )}
         </div>

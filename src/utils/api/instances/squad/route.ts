@@ -9,9 +9,17 @@ const getSquadById = (id: string) => PathHelper.createPath([ApiKey.squads, id]);
 
 const getMySquad = PathHelper.createPath([ApiKey.squads, ApiKey.my]);
 
-const getSquadByPage = (page: number | string) => {
+export type SquadListOrderBy = 'time' | 'volume' | 'pnl';
+
+const getSquadByPage = (
+  page: number | string,
+  orderBy: SquadListOrderBy = 'time',
+) => {
   const path = PathHelper.createPath([ApiKey.squads, ApiKey.list]);
-  return `${path}?${ApiKey.page}=${page}`;
+  const params = new URLSearchParams();
+  params.set(ApiKey.page, String(page));
+  params.set(ApiKey.orderBy, orderBy);
+  return `${path}?${params.toString()}`;
 };
 
 const joinSquadOpen = (squadId: string) =>

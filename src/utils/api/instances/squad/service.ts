@@ -1,4 +1,4 @@
-import Route from './route';
+import Route, { type SquadListOrderBy } from './route';
 import {
   deleteRequest,
   getRequest,
@@ -39,6 +39,7 @@ type SquadListResponseType = {
   page: number;
   page_size: number;
   total: number;
+  order_by?: SquadListOrderBy;
 };
 
 type SquadByIdSquadRow = SquadRowType & {
@@ -119,8 +120,11 @@ const getMySquad = async () => {
   } as SquadType;
 };
 
-const getSquadByPage = async (page: number) => {
-  const res = await getRequest(Route.getSquadByPage(page));
+const getSquadByPage = async (
+  page: number,
+  orderBy: SquadListOrderBy = 'time',
+) => {
+  const res = await getRequest(Route.getSquadByPage(page, orderBy));
   const data: SquadListResponseType = res.data;
 
   const squadList = data.items.map((item) => ({
@@ -233,3 +237,5 @@ export default {
   kickMember,
   editSquad,
 };
+
+export type { SquadListOrderBy } from './route';
