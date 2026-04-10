@@ -9,15 +9,15 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-const DEFAULT_MAINNET_RPC = 'https://api.mainnet-beta.solana.com';
+import EnvVariables from '@/utils/constants/EnvVariables';
+import { DEFAULT_MAINNET_RPC } from '@/utils/constants/solana';
 
 type SolanaWalletProvidersProps = {
   children: ReactNode;
 };
 
 const SolanaWalletProviders = ({ children }: SolanaWalletProvidersProps) => {
-  const endpoint =
-    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? DEFAULT_MAINNET_RPC;
+  const endpoint = EnvVariables.SOLANA_RPC_URL ?? DEFAULT_MAINNET_RPC;
 
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 

@@ -18,6 +18,7 @@ function parseEnvVars() {
     GA_MEASUREMENT_ID: getEnvValue('NEXT_APP_GA_MEASUREMENT_ID', ''),
     // for test
     TEST_MODE: getEnvValue('NEXT_APP_TEST_MODE', 'false'),
+    SOLANA_RPC_URL: getEnvValue('NEXT_APP_SOLANA_RPC_URL', ''),
     PACIFICA_BUILDER_CODE: getEnvValue(
       'NEXT_APP_PACIFICA_BUILDER_CODE',
       'phalanx',

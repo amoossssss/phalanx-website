@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import type { Keypair } from '@solana/web3.js';
+import { Connection, type Keypair } from '@solana/web3.js';
 import {
   USDC_MINT,
   createDepositTransaction,
@@ -13,10 +13,20 @@ import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
 import Media from '@/utils/constants/Media';
 import useNotification from '@/utils/hooks/useNotification';
 import { useAuth } from '@/utils/contexts/AuthContext';
+import { DEFAULT_MAINNET_RPC } from '@/utils/constants/solana';
 
 import './DepositDialog.scss';
 
 const CloseIcon = withColoredSvg(Media.icons.closeIcon);
+
+function normalizeRpcEndpoint(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.origin}${u.pathname}`.replace(/\/$/, '');
+  } catch {
+    return url.replace(/\/$/, '');
+  }
+}
 
 /** Matches `pacifica-ts-sdk` on-chain deposit minimum. */
 const MIN_DEPOSIT_USDC = 10;
@@ -48,12 +58,32 @@ const DepositDialog = ({ close }: DepositDialogProps) => {
     void (async () => {
       try {
         const ata = await getAssociatedTokenAddress(USDC_MINT, publicKey);
-        const res = await connection.getTokenAccountBalance(ata);
-        const ui = res.value.uiAmount;
-        if (!cancelled) {
-          setWalletUsdc(ui !== null && ui !== undefined ? ui : 0);
+        const readBalance = async (conn: Connection) => {
+          const res = await conn.getTokenAccountBalance(ata);
+          const ui = res.value.uiAmount;
+          return ui !== null && ui !== undefined ? ui : 0;
+        };
+
+        let usdc: number;
+        try {
+          usdc = await readBalance(connection);
+        } catch (primaryErr) {
+          if (
+            normalizeRpcEndpoint(connection.rpcEndpoint) ===
+            normalizeRpcEndpoint(DEFAULT_MAINNET_RPC)
+          ) {
+            throw primaryErr;
+          }
+          usdc = await readBalance(
+            new Connection(DEFAULT_MAINNET_RPC, 'confirmed'),
+          );
         }
-      } catch {
+
+        if (!cancelled) {
+          setWalletUsdc(usdc);
+        }
+      } catch (error) {
+        console.error('Failed to fetch USDC balance:', error);
         if (!cancelled) {
           setWalletUsdc(0);
         }
@@ -108,12 +138,18 @@ const DepositDialog = ({ close }: DepositDialogProps) => {
           amountNum,
           rpcEndpoint,
         );
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
         const signed = await signTransaction(tx);
         const sig = await connection.sendRawTransaction(signed.serialize(), {
           skipPreflight: false,
           maxRetries: 3,
         });
-        await connection.confirmTransaction(sig, 'confirmed');
+        await connection.confirmTransaction(
+          { signature: sig, blockhash, lastValidBlockHeight },
+          'confirmed',
+        );
         snackbar.success('Deposit submitted!');
         close();
       } catch (err) {

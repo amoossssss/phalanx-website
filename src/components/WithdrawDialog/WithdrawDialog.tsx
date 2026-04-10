@@ -165,6 +165,9 @@ const WithdrawDialog = ({ close }: WithdrawDialogProps) => {
           <div className="hint">
             {'Withdraws from your Pacifica account to your wallet.'}
           </div>
+          <div className="hint">
+            {'Pacifica will charge a 1 USDC withdraw fee.'}
+          </div>
           {!addressMatch && isLogin && (
             <div className="hint hint--warn">
               {'Connected wallet must match your logged-in address.'}
