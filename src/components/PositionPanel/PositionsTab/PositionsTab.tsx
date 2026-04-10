@@ -317,8 +317,8 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
                     })
                   : null;
               const roiPct =
-                baseRoiPct !== null && lev !== null && lev > 0
-                  ? baseRoiPct * lev
+                baseRoiPct !== null && maxLev !== null && maxLev > 0
+                  ? baseRoiPct * maxLev
                   : baseRoiPct;
               const sideTag = PositionHelper.sideTag(p.side);
               const sideLabel =
