@@ -25,23 +25,35 @@ const MemberList = ({
   const [tickBySymbol, setTickBySymbol] = useState<
     Record<string, string | number>
   >({});
+  const [maxLeverageBySymbol, setMaxLeverageBySymbol] = useState<
+    Record<string, number>
+  >({});
 
   useEffect(() => {
     let cancelled = false;
     void PacificaHelper.getMarkets()
       .then((markets) => {
         if (cancelled) return;
-        const next: Record<string, string | number> = {};
+        const ticks: Record<string, string | number> = {};
+        const maxLev: Record<string, number> = {};
         for (const m of markets) {
           const sym = m.symbol;
-          if (!sym || m.tick_size === undefined || m.tick_size === null)
-            continue;
-          next[sym] = m.tick_size;
+          if (!sym) continue;
+          if (m.tick_size !== undefined && m.tick_size !== null) {
+            ticks[sym] = m.tick_size;
+          }
+          const raw = m.max_leverage;
+          const n = typeof raw === 'number' ? raw : Number(raw);
+          if (Number.isFinite(n) && n > 0) maxLev[sym] = Math.floor(n);
         }
-        setTickBySymbol(next);
+        setTickBySymbol(ticks);
+        setMaxLeverageBySymbol(maxLev);
       })
       .catch(() => {
-        if (!cancelled) setTickBySymbol({});
+        if (!cancelled) {
+          setTickBySymbol({});
+          setMaxLeverageBySymbol({});
+        }
       });
     return () => {
       cancelled = true;
@@ -64,6 +76,7 @@ const MemberList = ({
             onKickMember={onKickMember}
             squadColor={squadColor}
             tickBySymbol={tickBySymbol}
+            maxLeverageBySymbol={maxLeverageBySymbol}
           />
         );
       })}

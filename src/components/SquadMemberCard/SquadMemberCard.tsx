@@ -22,6 +22,8 @@ type SquadMemberCardType = {
   squadColor: string;
   /** From parent `getMarkets()` — symbol → tick_size for price display */
   tickBySymbol: Record<string, string | number>;
+  /** From parent `getMarkets()` — symbol → max_leverage (fallback when account leverage is unknown) */
+  maxLeverageBySymbol: Record<string, number>;
 };
 
 const SquadMemberCard = ({
@@ -30,6 +32,7 @@ const SquadMemberCard = ({
   onKickMember,
   squadColor,
   tickBySymbol,
+  maxLeverageBySymbol,
 }: SquadMemberCardType) => {
   const { snackbar } = useNotification();
 
@@ -348,9 +351,14 @@ const SquadMemberCard = ({
                     markPrice: mark,
                     leverageBySymbol,
                   });
+                  const maxLev = maxLeverageBySymbol[p.symbol];
+                  const levForMargin =
+                    lev !== null && lev > 0 ? lev : maxLev ?? null;
                   const marginUsd =
-                    valueUsd !== null && lev !== null && lev > 0
-                      ? valueUsd / lev
+                    valueUsd !== null &&
+                    levForMargin !== null &&
+                    levForMargin > 0
+                      ? valueUsd / levForMargin
                       : null;
                   const upnl =
                     mark !== undefined && Number.isFinite(mark)
