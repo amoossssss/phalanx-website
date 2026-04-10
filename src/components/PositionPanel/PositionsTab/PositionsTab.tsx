@@ -55,6 +55,19 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
     return next;
   }, [markets]);
 
+  const maxLeverageBySymbol = useMemo(() => {
+    const next: Record<string, number> = {};
+    if (!markets?.length) return next;
+    for (const m of markets) {
+      const sym = m.symbol;
+      if (!sym) continue;
+      const raw = m.max_leverage;
+      const n = typeof raw === 'number' ? raw : Number(raw);
+      if (Number.isFinite(n) && n > 0) next[sym] = Math.floor(n);
+    }
+    return next;
+  }, [markets]);
+
   const positionSymbolsKey = useMemo(
     () =>
       Array.from(
@@ -285,9 +298,14 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
                 markPrice: mark,
                 leverageBySymbol,
               });
+              const maxLev = maxLeverageBySymbol[p.symbol];
+              const levForSideLabel =
+                lev !== null && lev > 0 ? lev : maxLev ?? null;
               const marginUsd =
-                valueUsd !== null && lev !== null && lev > 0
-                  ? valueUsd / lev
+                valueUsd !== null &&
+                levForSideLabel !== null &&
+                levForSideLabel > 0
+                  ? valueUsd / levForSideLabel
                   : null;
               const baseRoiPct =
                 pnlUsd !== null
@@ -303,7 +321,10 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
                   ? baseRoiPct * lev
                   : baseRoiPct;
               const sideTag = PositionHelper.sideTag(p.side);
-              const sideLabel = lev !== null ? `${lev}x_${sideTag}` : sideTag;
+              const sideLabel =
+                levForSideLabel !== null && levForSideLabel > 0
+                  ? `${levForSideLabel}x_${sideTag}`
+                  : sideTag;
 
               return (
                 <tr
