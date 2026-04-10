@@ -1,0 +1,413 @@
+@import 'src/styles/config';
+
+.frontline {
+  @include column;
+  gap: 1rem;
+  padding: 3rem;
+  width: 100svw;
+  box-sizing: border-box;
+
+  .frontline-header {
+    @include row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+
+    .frontline-title {
+      font-size: 5.6rem;
+      font-weight: $font-weight-bold;
+      color: $color-primary;
+      text-shadow: $text-shadow-primary;
+    }
+  }
+
+  .frontline-meta {
+    @include column;
+    align-items: stretch;
+    gap: 1.6rem;
+    width: 100%;
+
+    &__operation {
+      @include row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8rem 1.2rem;
+    }
+
+    &__operation-label {
+      @include font-12;
+      color: $color-white-50-percent;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    &__operation-dates {
+      @include font-14;
+      color: $color-white-70-percent;
+    }
+
+    &__live {
+      @include font-12;
+      padding: 0.25rem 0.6rem;
+      background: $color-secondary;
+      color: $color-white01;
+      text-shadow: 0 0 8px rgba(255, 81, 250, 0.45);
+      animation: frontline-live-pulse 2.4s ease-in-out infinite;
+    }
+  }
+
+  .frontline-reward-showcase {
+    position: relative;
+    padding: 2rem 1.8rem 2.2rem;
+    background: radial-gradient(
+        ellipse 120% 80% at 50% -20%,
+        color-with-opacity($color-primary, 0.12),
+        transparent 55%
+      ),
+      linear-gradient(
+        165deg,
+        $color-black02 0%,
+        $color-neutral 38%,
+        $color-neutral-light 100%
+      );
+    border: 2px solid $color-primary-dark;
+    box-sizing: border-box;
+    overflow: hidden;
+    animation: frontline-reward-breathe 4.5s ease-in-out infinite;
+
+    &--solo {
+      .frontline-reward-showcase__header {
+        margin-bottom: 1rem;
+      }
+    }
+
+    &__glow {
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      background: linear-gradient(
+        125deg,
+        color-with-opacity($color-primary, 0.35) 0%,
+        transparent 40%,
+        color-with-opacity($color-secondary, 0.25) 70%,
+        color-with-opacity($color-tertiary, 0.2) 100%
+      );
+      opacity: 0.45;
+      filter: blur(22px);
+      z-index: 0;
+    }
+
+    &__corners {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      border: 2px solid color-with-opacity($color-primary, 0.5);
+      box-shadow:
+        inset 0 0 0 1px color-with-opacity($color-secondary, 0.25),
+        inset 0 0 24px color-with-opacity($color-primary, 0.08);
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        width: 1.6rem;
+        height: 1.6rem;
+        border: 2px solid $color-tertiary;
+        opacity: 0.85;
+      }
+
+      &::before {
+        top: 0.6rem;
+        left: 0.6rem;
+        border-right: none;
+        border-bottom: none;
+        box-shadow: -1px -1px 0 color-with-opacity($color-primary, 0.6);
+      }
+
+      &::after {
+        bottom: 0.6rem;
+        right: 0.6rem;
+        border-left: none;
+        border-top: none;
+        box-shadow: 1px 1px 0 color-with-opacity($color-secondary, 0.5);
+      }
+    }
+
+    &__header {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 1.6rem;
+      text-align: center;
+    }
+
+    &__tag {
+      display: inline-block;
+      @include font-12;
+      letter-spacing: 0.12em;
+      color: $color-secondary;
+      text-shadow: 0 0 12px color-with-opacity($color-secondary, 0.5);
+      margin-bottom: 0.4rem;
+    }
+
+    &__title {
+      margin: 0;
+      @include font-space-grotesk;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.18em;
+      line-height: 1.1;
+      text-transform: uppercase;
+      background: linear-gradient(
+        92deg,
+        $color-primary 0%,
+        $color-white01 42%,
+        $color-secondary 78%,
+        $color-tertiary 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 20px color-with-opacity($color-primary, 0.45))
+        drop-shadow(0 2px 24px color-with-opacity($color-secondary, 0.25));
+    }
+
+    &__sub {
+      @include font-12;
+      margin: 0.8rem auto;
+      color: $color-white-50-percent;
+    }
+
+    &__grid {
+      @include row;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      gap: 1rem;
+      margin: 0 auto;
+    }
+  }
+
+  .frontline-reward-card {
+    position: relative;
+    padding: 1.2rem 1rem 1.4rem;
+    background: color-with-opacity($color-black01, 0.55);
+    border: 1px solid color-with-opacity($color-primary-dark, 0.85);
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-primary, 0.08),
+      0 4px 20px rgba(0, 0, 0, 0.35);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    width: 20rem;
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: color-with-opacity($color-primary, 0.55);
+      box-shadow:
+        0 0 0 1px color-with-opacity($color-secondary, 0.2),
+        0 8px 28px color-with-opacity($color-primary, 0.12);
+    }
+
+    &--solo {
+      max-width: 100%;
+      text-align: center;
+    }
+
+    &__edge {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(
+        180deg,
+        $color-tertiary,
+        $color-primary,
+        $color-secondary
+      );
+      opacity: 0.95;
+      box-shadow: 0 0 12px color-with-opacity($color-tertiary, 0.5);
+    }
+
+    &__key {
+      @include font-12;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: $color-white-50-percent;
+      padding-left: 0.4rem;
+    }
+
+    &__value {
+      position: relative;
+      z-index: 1;
+      @include font-space-grotesk;
+      @include font-24;
+      color: $color-primary;
+      font-weight: $font-weight-bold;
+      text-shadow: $text-shadow-primary;
+      word-break: break-word;
+      padding-left: 0.4rem;
+      line-height: 1.2;
+
+      &--hero {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        letter-spacing: 0.04em;
+        color: $color-white01;
+        text-shadow:
+          0 0 24px color-with-opacity($color-primary, 0.55),
+          0 0 48px color-with-opacity($color-secondary, 0.25),
+          $text-shadow-primary;
+      }
+    }
+  }
+
+  .frontline-message {
+    @include font-16;
+    color: $color-white-50-percent;
+  }
+
+  .frontline-boards {
+    @include row;
+    gap: 2.4rem;
+    margin-top: 1rem;
+
+    @media (max-width: 900px) {
+      @include column;
+    }
+  }
+
+  .frontline-column {
+    flex: 1;
+    min-width: 0;
+    @include column;
+    gap: 1rem;
+
+    &__title {
+      @include font-24;
+      color: $color-primary;
+      font-weight: 700;
+    }
+
+    &__subtitle {
+      @include font-12;
+      color: $color-white-50-percent;
+      margin-top: -0.4rem;
+    }
+
+    &__list {
+      @include column;
+      gap: 1.2rem;
+    }
+  }
+
+  .frontline-row {
+    @include row;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: $color-neutral-light;
+    border: 1px solid $color-primary-dark;
+
+    &:hover {
+      @include mini-scale(1.01);
+    }
+
+    &__rank {
+      @include font-14;
+      color: $color-tertiary;
+      min-width: 3.2rem;
+      font-weight: 600;
+    }
+
+    &__avatar {
+      width: 3.6rem;
+      height: 3.6rem;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    &__name {
+      @include font-16;
+      color: $color-primary;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__metric {
+      @include font-16;
+      font-weight: 600;
+      color: $color-primary;
+
+      &.volume {
+        color: $color-tertiary;
+      }
+
+      &.negative {
+        color: $color-secondary;
+      }
+    }
+  }
+}
+
+
+
+@keyframes frontline-reward-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-primary, 0.15),
+      0 0 32px color-with-opacity($color-primary, 0.12),
+      0 0 64px color-with-opacity($color-secondary, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-secondary, 0.22),
+      0 0 48px color-with-opacity($color-primary, 0.22),
+      0 0 88px color-with-opacity($color-secondary, 0.1);
+  }
+}
+
+@keyframes frontline-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.92;
+    filter: brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frontline-reward-showcase {
+    animation: none;
+  }
+
+  .frontline-meta__live {
+    animation: none;
+  }
+}
+
+.window-small {
+  .frontline {
+    padding: 3rem 2rem;
+  }
+
+  .frontline-title {
+    @include font-28;
+  }
+
+  .frontline-reward-showcase__grid {
+    grid-template-columns: 1fr;
+  }
+}

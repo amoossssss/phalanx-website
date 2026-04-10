@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import Home from '@/containers/Home/Home';
+import Frontline from '@/containers/Frontline/Frontline';
 import Squad from '@/containers/Squad/Squad';
 import SquadSpace from '@/containers/SquadSpace/SquadSpace';
 import Trade from '@/containers/Trade/Trade';
@@ -54,6 +55,7 @@ const Body = () => {
           <Routes>
             <Route path="/squad/:id" element={<SquadSpace />} />
             <Route path="/squad" element={<Squad />} />
+            <Route path="/frontline" element={<Frontline />} />
             <Route path="/trade" element={<Trade />} />
             <Route path="*" element={<Home />} />
           </Routes>

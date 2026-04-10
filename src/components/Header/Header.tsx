@@ -34,6 +34,14 @@ const Header = () => {
           {'Squad'}
         </NavLink>
         <NavLink
+          to="/frontline"
+          className={({ isActive }) =>
+            isActive ? 'menu-item active' : 'menu-item'
+          }
+        >
+          {'Frontline'}
+        </NavLink>
+        <NavLink
           to="/trade"
           className={({ isActive }) =>
             isActive ? 'menu-item active' : 'menu-item'

@@ -1,0 +1,48 @@
+@import 'src/styles/config';
+
+.season-dropdown {
+  position: absolute;
+  top: 3.6rem;
+  right: 0;
+  z-index: 10000;
+
+  .season-dropdown-list {
+    @include hide-scrollbar;
+    width: 100%;
+    background: $color-neutral;
+    border: 2px solid $color-primary-dark;
+    box-sizing: border-box;
+    max-height: 20rem;
+    overflow-y: auto;
+  }
+
+  .loading {
+    @include font-14;
+    color: $color-white-50-percent;
+    padding: 1.2rem 0.8rem;
+  }
+
+  .season-dropdown-row {
+    @include row;
+    align-items: center;
+    gap: 0.8rem;
+    background: $color-neutral;
+    padding: 0.4rem 0.6rem;
+    outline: none;
+    cursor: pointer;
+
+    &:hover {
+      @include mini-scale(1.01);
+    }
+
+    .season-dropdown-name {
+      @include font-14;
+      color: $color-white01;
+    }
+  }
+}
+
+.window-small {
+  .season-dropdown {
+  }
+}

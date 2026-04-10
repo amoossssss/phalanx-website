@@ -1,0 +1,50 @@
+@import 'src/styles/config';
+
+.season-selector {
+  @include row;
+  align-items: center;
+
+  .season-selector-control {
+    @include row;
+    align-items: center;
+    gap: 0.8rem;
+    background: transparent;
+    outline: none;
+    box-sizing: border-box;
+    position: relative;
+
+    &:hover {
+      .season-name {
+        @include mini-scale(1.02);
+      }
+    }
+  }
+
+  .season-title {
+    @include font-14;
+    color: $color-white01;
+  }
+
+  .season-name {
+    @include font-14;
+    color: $color-primary;
+    border: 2px solid $color-primary-dark;
+    padding: 0.4rem 0.6rem;
+    box-sizing: border-box;
+  }
+
+  //.live-tag {
+  //  @include font-12;
+  //  position: absolute;
+  //  top: -1.6rem;
+  //  right: -0.5rem;
+  //  background: $color-secondary;
+  //  padding: 0.2rem 0.6rem;
+  //  color: $color-white01;
+  //}
+}
+
+.window-small {
+  .season-selector {
+  }
+}

@@ -19,6 +19,10 @@ enum ApiKey {
   alias = 'alias',
   insight = 'insight',
   token = 'token',
+  frontline = 'frontline',
+  rankings = 'rankings',
+  squad = 'squad',
+  ranking = 'ranking',
 }
 
 export default ApiKey;

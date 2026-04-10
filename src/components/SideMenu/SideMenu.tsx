@@ -57,6 +57,17 @@ const SideMenu = ({ isOpen, closeMenu }: SideMenuType) => {
           </NavLink>
 
           <NavLink
+            to={'/frontline'}
+            target={'_self'}
+            className={({ isActive }) =>
+              isActive ? 'menu-link active' : 'menu-link'
+            }
+            onClick={closeMenu}
+          >
+            {'Frontline'}
+          </NavLink>
+
+          <NavLink
             to={'/trade'}
             target={'_self'}
             className={({ isActive }) =>
