@@ -307,19 +307,15 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
                 levForSideLabel > 0
                   ? valueUsd / levForSideLabel
                   : null;
-              const baseRoiPct =
+              const roiPct =
                 pnlUsd !== null
                   ? PositionHelper.unrealizedRoiPct({
                       pnlUsd,
                       entryPrice: p.entryPrice,
                       amount: p.amount,
-                      margin: p.margin,
+                      margin: p.margin !== 0 ? p.margin : marginUsd ?? 0,
                     })
                   : null;
-              const roiPct =
-                baseRoiPct !== null && maxLev !== null && maxLev > 0
-                  ? baseRoiPct * maxLev
-                  : baseRoiPct;
               const sideTag = PositionHelper.sideTag(p.side);
               const sideLabel =
                 levForSideLabel !== null && levForSideLabel > 0
