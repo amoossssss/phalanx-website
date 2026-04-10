@@ -253,49 +253,71 @@ const Frontline = () => {
         )}
       </div>
 
-      {selectedSeason && (
-        <div className="frontline-meta">
-          <div className="frontline-meta__operation">
-            <span className="frontline-meta__operation-label">
-              {'Operation_window'}
-            </span>
-            <span className="frontline-meta__operation-dates">
-              {new Date(selectedSeason.starts_at).toLocaleDateString()} —{' '}
-              {new Date(selectedSeason.ends_at).toLocaleDateString()}
-            </span>
-            {selectedSeason.status === 'current' && (
-              <span className="frontline-meta__live">{'Live'}</span>
+      <div className="frontline-body">
+        {isLoadingList && (
+          <div
+            className="frontline__loading-layer"
+            aria-live="polite"
+            aria-busy={true}
+          >
+            <div className="frontline-loading-message">
+              {'> Loading_Frontline...'}
+            </div>
+          </div>
+        )}
+
+        {listError && (
+          <div className="frontline-message frontline-message--error">
+            {listError}
+          </div>
+        )}
+
+        {!isLoadingList && seasons.length === 0 && (
+          <div className="frontline-message">{'No_frontline_seasons_yet.'}</div>
+        )}
+
+        {selectedSeason && !isLoadingList && (
+          <div className="frontline__content" key={selectedId}>
+            <div className="frontline-meta">
+              <div className="frontline-meta__operation">
+                <span className="frontline-meta__operation-label">
+                  {'Operation_window'}
+                </span>
+                <span className="frontline-meta__operation-dates">
+                  {new Date(selectedSeason.starts_at).toLocaleDateString()} —{' '}
+                  {new Date(selectedSeason.ends_at).toLocaleDateString()}
+                </span>
+                {selectedSeason.status === 'current' && (
+                  <span className="frontline-meta__live">{'Live'}</span>
+                )}
+              </div>
+              <FrontlineRewardDetails
+                seasonName={selectedSeason.name}
+                reward={rewardForMeta}
+              />
+            </div>
+
+            {isLoadingRankings && (
+              <div className="frontline-boards-loading">
+                {'> Loading_leaderboards...'}
+              </div>
+            )}
+
+            {rankings && !isLoadingRankings && (
+              <div className="frontline-boards frontline-boards--visible">
+                <FirepowerColumn
+                  items={rankings.items}
+                  onSquadClick={handleSquadClick}
+                />
+                <WarChestColumn
+                  items={rankings.items}
+                  onSquadClick={handleSquadClick}
+                />
+              </div>
             )}
           </div>
-          <FrontlineRewardDetails
-            seasonName={selectedSeason.name}
-            reward={rewardForMeta}
-          />
-        </div>
-      )}
-
-      {listError && <div className="frontline-message">{listError}</div>}
-
-      {!isLoadingList && seasons.length === 0 && (
-        <div className="frontline-message">{'No_frontline_seasons_yet.'}</div>
-      )}
-
-      {(isLoadingList || isLoadingRankings) && (
-        <div className="frontline-message">{'Loading…'}</div>
-      )}
-
-      {!isLoadingRankings && rankings && (
-        <div className="frontline-boards">
-          <FirepowerColumn
-            items={rankings.items}
-            onSquadClick={handleSquadClick}
-          />
-          <WarChestColumn
-            items={rankings.items}
-            onSquadClick={handleSquadClick}
-          />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
