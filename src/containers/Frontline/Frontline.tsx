@@ -5,13 +5,16 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import SeasonSelector from '@/components/SeasonSelector/SeasonSelector';
 
 import ApiService from '@/utils/api/ApiService';
+import Media from '@/utils/constants/Media';
+import StringHelper from '@/utils/helpers/StringHelper';
+import { SquadType } from '@/utils/constants/Types';
+import { useUser } from '@/utils/contexts/UserContext';
 import type {
   FrontlineListItem,
   FrontlineRankingsItem,
   FrontlineRankingsResponse,
+  FrontlineSquadRankingResponse,
 } from '@/utils/api/instances/frontline/service';
-import Media from '@/utils/constants/Media';
-import StringHelper from '@/utils/helpers/StringHelper';
 
 import './Frontline.scss';
 
@@ -25,34 +28,60 @@ const displayRewardValue = (value: unknown): string => {
 function FrontlineRewardDetails({
   seasonName,
   reward,
+  mySquad,
+  mySquadRanking,
+  isLoadingMySquadRank,
+  onMySquadNavigate,
 }: {
   seasonName: string;
   reward: unknown;
+  mySquad: SquadType | null;
+  mySquadRanking: FrontlineSquadRankingResponse | null;
+  isLoadingMySquadRank: boolean;
+  onMySquadNavigate: () => void;
 }) {
-  if (reward === null || reward === undefined) {
+  const rewardEntries =
+    typeof reward === 'object' && reward !== null && !Array.isArray(reward)
+      ? Object.entries(reward as Record<string, unknown>)
+      : [];
+  const hasRewardGrid = rewardEntries.length > 0;
+  const hasRewardSolo =
+    reward !== null &&
+    reward !== undefined &&
+    (typeof reward !== 'object' || Array.isArray(reward));
+  const hasRewardContent = hasRewardGrid || hasRewardSolo;
+  const hasMySquadSection =
+    !!mySquad && (isLoadingMySquadRank || !!mySquadRanking);
+
+  if (!hasRewardContent && !hasMySquadSection) {
     return null;
   }
 
-  if (typeof reward === 'object' && !Array.isArray(reward)) {
-    const entries = Object.entries(reward as Record<string, unknown>);
-    if (entries.length === 0) {
-      return null;
-    }
-    return (
-      <div className="frontline-reward-showcase">
-        <div className="frontline-reward-showcase__glow" aria-hidden />
-        <div className="frontline-reward-showcase__corners" aria-hidden />
-        <header className="frontline-reward-showcase__header">
-          <span className="frontline-reward-showcase__tag">
-            {`<${seasonName}_Loot_Drop>`}
-          </span>
-          <h2 className="frontline-reward-showcase__title">{'THE_SPOILS'}</h2>
+  const showSoloCard = hasRewardSolo && !hasRewardGrid;
+
+  return (
+    <div
+      className={`frontline-reward-showcase${
+        showSoloCard ? ' frontline-reward-showcase--solo' : ''
+      }`}
+    >
+      <div className="frontline-reward-showcase__glow" aria-hidden />
+      <div className="frontline-reward-showcase__corners" aria-hidden />
+      <header className="frontline-reward-showcase__header">
+        <span className="frontline-reward-showcase__tag">
+          {`<${seasonName}_Loot_Drop>`}
+        </span>
+        <h2 className="frontline-reward-showcase__title">{'THE_SPOILS'}</h2>
+        {hasRewardContent && (
           <p className="frontline-reward-showcase__sub">
             {'Claim_your_share_when_the_operation_closes.'}
           </p>
-        </header>
+        )}
+      </header>
+
+      {hasRewardGrid && (
         <div className="frontline-reward-showcase__grid">
-          {entries.map(([key, value]) => (
+          {rewardEntries.map(([key, value]) => (
             <div key={key} className="frontline-reward-card">
               <div className="frontline-reward-card__edge" aria-hidden />
               <div className="frontline-reward-card__key">{key}</div>
@@ -62,24 +91,37 @@ function FrontlineRewardDetails({
             </div>
           ))}
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="frontline-reward-showcase frontline-reward-showcase--solo">
-      <div className="frontline-reward-showcase__glow" aria-hidden />
-      <div className="frontline-reward-showcase__corners" aria-hidden />
-      <header className="frontline-reward-showcase__header">
-        <span className="frontline-reward-showcase__tag">{'<Loot_Drop>'}</span>
-        <h2 className="frontline-reward-showcase__title">{'THE_SPOILS'}</h2>
-      </header>
-      <div className="frontline-reward-card frontline-reward-card--solo">
-        <div className="frontline-reward-card__edge" aria-hidden />
-        <div className="frontline-reward-card__value frontline-reward-card__value--hero">
-          {displayRewardValue(reward)}
+      {showSoloCard && reward !== undefined && reward !== null && (
+        <div className="frontline-reward-card frontline-reward-card--solo">
+          <div className="frontline-reward-card__edge" aria-hidden />
+          <div className="frontline-reward-card__value frontline-reward-card__value--hero">
+            {displayRewardValue(reward)}
+          </div>
         </div>
-      </div>
+      )}
+
+      {hasMySquadSection && mySquad && (
+        <div className="frontline-reward-showcase__my-squad">
+          <div className="frontline-reward-showcase__my-squad-label">
+            {'<My_Squad_Rankings>'}
+          </div>
+          {isLoadingMySquadRank && (
+            <div className="frontline-reward-showcase__my-squad-loading">
+              {'> Loading_your_squad_rank...'}
+            </div>
+          )}
+          {!isLoadingMySquadRank && mySquadRanking && (
+            <FrontlineMySquadSummary
+              embedded
+              mySquad={mySquad}
+              ranking={mySquadRanking}
+              onNavigate={onMySquadNavigate}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -87,9 +129,11 @@ function FrontlineRewardDetails({
 const FirepowerColumn = ({
   items,
   onSquadClick,
+  mySquadId,
 }: {
   items: FrontlineRankingsItem[];
   onSquadClick: (id: string) => void;
+  mySquadId: string | null;
 }) => {
   const sorted = useMemo(
     () => [...items].sort((a, b) => a.volume_rank - b.volume_rank),
@@ -120,6 +164,9 @@ const FirepowerColumn = ({
             <div className="frontline-row__metric volume">
               {StringHelper.formatCompactNumber(item.volume)}
             </div>
+            {mySquadId === item.squad.id && (
+              <div className="my-squad-tag">{'My_Squad'}</div>
+            )}
           </ButtonDiv>
         ))}
       </div>
@@ -130,9 +177,11 @@ const FirepowerColumn = ({
 const WarChestColumn = ({
   items,
   onSquadClick,
+  mySquadId,
 }: {
   items: FrontlineRankingsItem[];
   onSquadClick: (id: string) => void;
+  mySquadId: string | null;
 }) => {
   const sorted = useMemo(
     () => [...items].sort((a, b) => a.pnl_rank - b.pnl_rank),
@@ -167,6 +216,9 @@ const WarChestColumn = ({
             >
               {StringHelper.formatCompactNumber(item.pnl)}
             </div>
+            {mySquadId === item.squad.id && (
+              <div className="my-squad-tag">{'My_Squad'}</div>
+            )}
           </ButtonDiv>
         ))}
       </div>
@@ -174,8 +226,76 @@ const WarChestColumn = ({
   );
 };
 
+function FrontlineMySquadSummary({
+  mySquad,
+  ranking,
+  onNavigate,
+  embedded = false,
+}: {
+  mySquad: SquadType;
+  ranking: FrontlineSquadRankingResponse;
+  onNavigate: () => void;
+  embedded?: boolean;
+}) {
+  return (
+    <div
+      className={`frontline-my-squad${
+        embedded ? ' frontline-my-squad--embedded' : ''
+      }`}
+    >
+      {!embedded && (
+        <div className="frontline-my-squad__title">{'<My_Squad_Rankings>'}</div>
+      )}
+      <ButtonDiv
+        className="frontline-reward-card frontline-reward-card--my-squad"
+        onClick={onNavigate}
+      >
+        <div className="frontline-reward-card__edge" aria-hidden />
+        <div className="frontline-reward-card__my-squad-head">
+          <img
+            className="frontline-reward-card__my-squad-avatar"
+            src={mySquad.avatarUrl ? mySquad.avatarUrl : Media.favicon}
+            alt=""
+            style={{ boxShadow: `0 0 2px 2px ${mySquad.color}` }}
+          />
+          <div className="frontline-reward-card__my-squad-name">
+            {`> ${mySquad.name}`}
+          </div>
+        </div>
+        <div className="frontline-reward-card__my-squad-stats">
+          <div className="frontline-reward-card__my-squad-stat">
+            <div className="frontline-reward-card__key">{'Firepower'}</div>
+            <div className="frontline-reward-card__value">
+              #{ranking.volume_rank}
+            </div>
+            <div className="frontline-reward-card__my-squad-sub">
+              {`${StringHelper.formatCompactNumber(ranking.volume)} USD`}
+            </div>
+          </div>
+          <div className="frontline-reward-card__my-squad-stat">
+            <div className="frontline-reward-card__key">{'War_Chest'}</div>
+            <div className="frontline-reward-card__value">
+              #{ranking.pnl_rank}
+            </div>
+            <div
+              className={`frontline-reward-card__my-squad-sub${
+                ranking.pnl < 0
+                  ? ' frontline-reward-card__my-squad-sub--negative'
+                  : ''
+              }`}
+            >
+              {`${StringHelper.formatCompactNumber(ranking.pnl)} USD`}
+            </div>
+          </div>
+        </div>
+      </ButtonDiv>
+    </div>
+  );
+}
+
 const Frontline = () => {
   const navigate = useNavigate();
+  const { mySquad } = useUser();
   const [seasons, setSeasons] = useState<FrontlineListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rankings, setRankings] = useState<FrontlineRankingsResponse | null>(
@@ -184,6 +304,9 @@ const Frontline = () => {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [isLoadingRankings, setIsLoadingRankings] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
+  const [mySquadRanking, setMySquadRanking] =
+    useState<FrontlineSquadRankingResponse | null>(null);
+  const [isLoadingMySquadRank, setIsLoadingMySquadRank] = useState(false);
 
   const loadList = useCallback(async () => {
     setIsLoadingList(true);
@@ -230,6 +353,30 @@ const Frontline = () => {
       cancelled = true;
     };
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedId || !mySquad?.squadId) {
+      setMySquadRanking(null);
+      setIsLoadingMySquadRank(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingMySquadRank(true);
+    ApiService.frontline
+      .getSquadRanking(selectedId, mySquad.squadId)
+      .then((data) => {
+        if (!cancelled) setMySquadRanking(data);
+      })
+      .catch(() => {
+        if (!cancelled) setMySquadRanking(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMySquadRank(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, mySquad?.squadId]);
 
   const handleSquadClick = (squadId: string) => {
     navigate(`/squad/${squadId}`);
@@ -294,6 +441,12 @@ const Frontline = () => {
               <FrontlineRewardDetails
                 seasonName={selectedSeason.name}
                 reward={rewardForMeta}
+                mySquad={mySquad}
+                mySquadRanking={mySquadRanking}
+                isLoadingMySquadRank={isLoadingMySquadRank}
+                onMySquadNavigate={() => {
+                  if (mySquad) navigate(`/squad/${mySquad.squadId}`);
+                }}
               />
             </div>
 
@@ -304,16 +457,20 @@ const Frontline = () => {
             )}
 
             {rankings && !isLoadingRankings && (
-              <div className="frontline-boards frontline-boards--visible">
-                <FirepowerColumn
-                  items={rankings.items}
-                  onSquadClick={handleSquadClick}
-                />
-                <WarChestColumn
-                  items={rankings.items}
-                  onSquadClick={handleSquadClick}
-                />
-              </div>
+              <>
+                <div className="frontline-boards frontline-boards--visible">
+                  <FirepowerColumn
+                    items={rankings.items}
+                    onSquadClick={handleSquadClick}
+                    mySquadId={mySquad?.squadId ?? null}
+                  />
+                  <WarChestColumn
+                    items={rankings.items}
+                    onSquadClick={handleSquadClick}
+                    mySquadId={mySquad?.squadId ?? null}
+                  />
+                </div>
+              </>
             )}
           </div>
         )}
