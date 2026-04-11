@@ -18,6 +18,8 @@ import type {
 
 import './Frontline.scss';
 
+const LEADERBOARD_PAGE_SIZE = 10;
+
 const displayRewardValue = (value: unknown): string => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return StringHelper.formatCompactNumber(value);
@@ -130,22 +132,33 @@ const FirepowerColumn = ({
   items,
   onSquadClick,
   mySquadId,
+  visibleCount,
+  onLoadMore,
 }: {
   items: FrontlineRankingsItem[];
   onSquadClick: (id: string) => void;
   mySquadId: string | null;
+  visibleCount: number;
+  onLoadMore: () => void;
 }) => {
   const sorted = useMemo(
     () => [...items].sort((a, b) => a.volume_rank - b.volume_rank),
     [items],
   );
 
+  const visible = useMemo(
+    () => sorted.slice(0, visibleCount),
+    [sorted, visibleCount],
+  );
+
+  const hasMore = sorted.length > visibleCount;
+
   return (
     <div className="frontline-column">
       <div className="frontline-column__title">{'Firepower'}</div>
       <div className="frontline-column__subtitle">{'Volume_Leaderboard'}</div>
       <div className="frontline-column__list">
-        {sorted.map((item) => (
+        {visible.map((item) => (
           <ButtonDiv
             key={item.squad.id}
             className="frontline-row"
@@ -170,6 +183,11 @@ const FirepowerColumn = ({
           </ButtonDiv>
         ))}
       </div>
+      {hasMore && (
+        <ButtonDiv className="frontline-column__load-more" onClick={onLoadMore}>
+          {'<View_More>'}
+        </ButtonDiv>
+      )}
     </div>
   );
 };
@@ -178,22 +196,33 @@ const WarChestColumn = ({
   items,
   onSquadClick,
   mySquadId,
+  visibleCount,
+  onLoadMore,
 }: {
   items: FrontlineRankingsItem[];
   onSquadClick: (id: string) => void;
   mySquadId: string | null;
+  visibleCount: number;
+  onLoadMore: () => void;
 }) => {
   const sorted = useMemo(
     () => [...items].sort((a, b) => a.pnl_rank - b.pnl_rank),
     [items],
   );
 
+  const visible = useMemo(
+    () => sorted.slice(0, visibleCount),
+    [sorted, visibleCount],
+  );
+
+  const hasMore = sorted.length > visibleCount;
+
   return (
     <div className="frontline-column">
       <div className="frontline-column__title">{'The_War_Chest'}</div>
       <div className="frontline-column__subtitle">{'PnL_Leaderboard'}</div>
       <div className="frontline-column__list">
-        {sorted.map((item) => (
+        {visible.map((item) => (
           <ButtonDiv
             key={item.squad.id}
             className="frontline-row"
@@ -222,6 +251,11 @@ const WarChestColumn = ({
           </ButtonDiv>
         ))}
       </div>
+      {hasMore && (
+        <ButtonDiv className="frontline-column__load-more" onClick={onLoadMore}>
+          {'<View_More>'}
+        </ButtonDiv>
+      )}
     </div>
   );
 };
@@ -307,6 +341,11 @@ const Frontline = () => {
   const [mySquadRanking, setMySquadRanking] =
     useState<FrontlineSquadRankingResponse | null>(null);
   const [isLoadingMySquadRank, setIsLoadingMySquadRank] = useState(false);
+  const [leaderboardFirepowerVisible, setLeaderboardFirepowerVisible] =
+    useState(LEADERBOARD_PAGE_SIZE);
+  const [leaderboardWarChestVisible, setLeaderboardWarChestVisible] = useState(
+    LEADERBOARD_PAGE_SIZE,
+  );
 
   const loadList = useCallback(async () => {
     setIsLoadingList(true);
@@ -377,6 +416,19 @@ const Frontline = () => {
       cancelled = true;
     };
   }, [selectedId, mySquad?.squadId]);
+
+  useEffect(() => {
+    setLeaderboardFirepowerVisible(LEADERBOARD_PAGE_SIZE);
+    setLeaderboardWarChestVisible(LEADERBOARD_PAGE_SIZE);
+  }, [selectedId, rankings]);
+
+  const handleLoadMoreFirepower = useCallback(() => {
+    setLeaderboardFirepowerVisible((n) => n + LEADERBOARD_PAGE_SIZE);
+  }, []);
+
+  const handleLoadMoreWarChest = useCallback(() => {
+    setLeaderboardWarChestVisible((n) => n + LEADERBOARD_PAGE_SIZE);
+  }, []);
 
   const handleSquadClick = (squadId: string) => {
     navigate(`/squad/${squadId}`);
@@ -463,11 +515,15 @@ const Frontline = () => {
                     items={rankings.items}
                     onSquadClick={handleSquadClick}
                     mySquadId={mySquad?.squadId ?? null}
+                    visibleCount={leaderboardFirepowerVisible}
+                    onLoadMore={handleLoadMoreFirepower}
                   />
                   <WarChestColumn
                     items={rankings.items}
                     onSquadClick={handleSquadClick}
                     mySquadId={mySquad?.squadId ?? null}
+                    visibleCount={leaderboardWarChestVisible}
+                    onLoadMore={handleLoadMoreWarChest}
                   />
                 </div>
               </>

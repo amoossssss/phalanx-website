@@ -470,6 +470,19 @@
       @include column;
       gap: 1.2rem;
     }
+
+    &__load-more {
+      @include base-button;
+      @include font-14;
+      font-weight: $font-weight-bold;
+      margin-top: 0.4rem;
+      color: $color-neutral;
+      background: $color-tertiary;
+
+      &:hover {
+        @include mini-scale(1.02);
+      }
+    }
   }
 
   .frontline-row {
