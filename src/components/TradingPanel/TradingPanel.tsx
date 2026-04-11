@@ -189,6 +189,12 @@ const TradingPanel = ({
   }, [selectedMarket, onMarketChange]);
 
   useEffect(() => {
+    if (!isLogin) {
+      setInsightsOpen(false);
+    }
+  }, [isLogin]);
+
+  useEffect(() => {
     if (!selectedMarket) return;
     setLatestPrice(null);
 
@@ -308,13 +314,15 @@ const TradingPanel = ({
           </div>
         </div>
 
-        <ButtonDiv
-          className="insights-header-button"
-          onClick={() => setInsightsOpen(true)}
-          disabled={!selectedMarket}
-        >
-          {'<Insights>'}
-        </ButtonDiv>
+        {isLogin && (
+          <ButtonDiv
+            className="insights-header-button"
+            onClick={() => setInsightsOpen(true)}
+            disabled={!selectedMarket}
+          >
+            {'<Insights>'}
+          </ButtonDiv>
+        )}
 
         <div
           className={`timeframe ${showTimeframe ? '' : 'timeframe--hidden'}`}
@@ -392,7 +400,7 @@ const TradingPanel = ({
         )}
       </div>
 
-      {insightsOpen && (
+      {isLogin && insightsOpen && (
         <InsightsDialog
           marketSymbol={selectedMarket}
           close={() => setInsightsOpen(false)}
