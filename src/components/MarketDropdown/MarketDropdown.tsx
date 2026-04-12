@@ -56,7 +56,7 @@ const MarketDropdown = ({
         <input
           type="search"
           className="market-dropdown-search-input"
-          placeholder="Search markets"
+          placeholder="Find markets"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoComplete="off"
