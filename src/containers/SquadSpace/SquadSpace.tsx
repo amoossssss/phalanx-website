@@ -220,46 +220,46 @@ const SquadSpace = () => {
               <VolumeChart members={memberList} squadColor={squad.color} />
             </div>
           </div>
-
-          {kickMemberTarget && id && (
-            <ConfirmKickMemberDialog
-              squadId={id}
-              member={kickMemberTarget}
-              close={() => setKickMemberTarget(null)}
-              onKicked={handleKickSucceeded}
-            />
-          )}
-
-          {isJoinDialogOpen && squad && (
-            <JoinSquadDialog
-              squadId={squad.squadId}
-              squadName={squad.name}
-              memberCount={squad.memberCount}
-              leader={squad.leader}
-              close={() => setIsJoinDialogOpen(false)}
-              onJoined={handleJoinedSquad}
-            />
-          )}
-
-          {isLeaveDialogOpen && squad && (
-            <LeaveSquadDialog
-              squadId={squad.squadId}
-              squadName={squad.name}
-              leader={squad.leader}
-              memberCount={squad.memberCount}
-              close={() => setIsLeaveDialogOpen(false)}
-              onLeft={handleLeftSquad}
-            />
-          )}
-
-          {isEditDialogOpen && (
-            <EditSquadDialog
-              squad={squad}
-              close={() => setIsEditDialogOpen(false)}
-              onSaved={() => handleFetchSquad({ silent: true })}
-            />
-          )}
         </div>
+      )}
+
+      {kickMemberTarget && id && (
+        <ConfirmKickMemberDialog
+          squadId={id}
+          member={kickMemberTarget}
+          close={() => setKickMemberTarget(null)}
+          onKicked={handleKickSucceeded}
+        />
+      )}
+
+      {isJoinDialogOpen && squad && (
+        <JoinSquadDialog
+          squadId={squad.squadId}
+          squadName={squad.name}
+          memberCount={squad.memberCount}
+          leader={squad.leader}
+          close={() => setIsJoinDialogOpen(false)}
+          onJoined={handleJoinedSquad}
+        />
+      )}
+
+      {isEditDialogOpen && squad && (
+        <EditSquadDialog
+          squad={squad}
+          close={() => setIsEditDialogOpen(false)}
+          onSaved={() => handleFetchSquad({ silent: true })}
+        />
+      )}
+
+      {isLeaveDialogOpen && squad && (
+        <LeaveSquadDialog
+          squadId={squad.squadId}
+          squadName={squad.name}
+          leader={squad.leader}
+          memberCount={squad.memberCount}
+          close={() => setIsLeaveDialogOpen(false)}
+          onLeft={handleLeftSquad}
+        />
       )}
     </div>
   );
