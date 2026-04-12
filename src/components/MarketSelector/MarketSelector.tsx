@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import MarketDropdown from '@/components/MarketDropdown/MarketDropdown';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
@@ -26,6 +28,32 @@ const MarketSelector = ({
     setIsOpen: setIsMarketDropdownOpen,
   } = useClickOutside();
 
+  const [volume24hBySymbol, setVolume24hBySymbol] = useState<
+    Record<string, number>
+  >({});
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await PacificaHelper.getAllMarketPrices();
+        if (cancelled) return;
+        const map: Record<string, number> = {};
+        for (const r of rows) {
+          if (!r?.symbol) continue;
+          const n = Number(r.volume_24h);
+          map[r.symbol] = Number.isFinite(n) && n >= 0 ? n : 0;
+        }
+        setVolume24hBySymbol(map);
+      } catch {
+        if (!cancelled) setVolume24hBySymbol({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadedMarkets]);
+
   if (!selectedMarket) return null;
 
   return (
@@ -43,6 +71,7 @@ const MarketSelector = ({
         {isMarketDropdownOpen && (
           <MarketDropdown
             markets={loadedMarkets}
+            volume24hBySymbol={volume24hBySymbol}
             close={() => {
               setIsMarketDropdownOpen(false);
             }}

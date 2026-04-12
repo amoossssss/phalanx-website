@@ -21,6 +21,8 @@ export type PacificaMarketPriceRow = {
   mark?: string;
   oracle?: string;
   timestamp?: number;
+  /** Notional volume over the last 24 hours (from `/info/prices`). */
+  volume_24h?: string;
   [key: string]: unknown;
 };
 
@@ -2314,15 +2316,10 @@ class PacificaHelper {
     return null;
   };
 
-  static getMarketPrice = async (args: {
-    market: string;
-  }): Promise<number | null> => {
-    const res = await fetch(`${PACIFICA_API_BASE}/info/prices`);
-    if (!res.ok) {
-      throw new Error(`get prices failed: ${res.status}`);
-    }
-
-    const json = (await res.json()) as unknown;
+  /** Parses `/info/prices` JSON into rows (handles `{ data: [...] }` or raw array). */
+  static parseJsonPricesResponse = (
+    json: unknown,
+  ): PacificaMarketPriceRow[] => {
     const data = (() => {
       if (json && typeof json === 'object') {
         const rec = json as Record<string, unknown>;
@@ -2331,8 +2328,22 @@ class PacificaHelper {
       if (Array.isArray(json)) return json;
       return [];
     })();
+    return data as PacificaMarketPriceRow[];
+  };
 
-    const rows = data as PacificaMarketPriceRow[];
+  static getAllMarketPrices = async (): Promise<PacificaMarketPriceRow[]> => {
+    const res = await fetch(`${PACIFICA_API_BASE}/info/prices`);
+    if (!res.ok) {
+      throw new Error(`get prices failed: ${res.status}`);
+    }
+    const json = (await res.json()) as unknown;
+    return PacificaHelper.parseJsonPricesResponse(json);
+  };
+
+  static getMarketPrice = async (args: {
+    market: string;
+  }): Promise<number | null> => {
+    const rows = await PacificaHelper.getAllMarketPrices();
     const row = rows.find((r) => r && r.symbol === args.market);
     if (!row) return null;
     return PacificaHelper.getPriceFromPricesRow(row);

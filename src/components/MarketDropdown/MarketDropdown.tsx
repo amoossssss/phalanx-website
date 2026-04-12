@@ -1,4 +1,4 @@
-import { useMemo, RefObject } from 'react';
+import { useMemo, useState, RefObject } from 'react';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
@@ -10,6 +10,8 @@ import './MarketDropdown.scss';
 
 type MarketDropdownProps = {
   markets: PacificaMarketInfo[];
+  /** From `/info/prices` `volume_24h`; higher volume first when sorting. */
+  volume24hBySymbol?: Record<string, number>;
   close: () => void;
   select: (marketSymbol: string) => void;
   divRef: RefObject<HTMLDivElement>;
@@ -17,24 +19,58 @@ type MarketDropdownProps = {
 
 const MarketDropdown = ({
   markets,
+  volume24hBySymbol,
   close,
   select,
   divRef,
 }: MarketDropdownProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const items = useMemo(() => {
     const symbols = markets
       .map((m) => (typeof m.symbol === 'string' ? m.symbol : null))
       .filter((s): s is string => !!s);
-    return Array.from(new Set(symbols)).sort();
-  }, [markets]);
+    const unique = Array.from(new Set(symbols));
+    const vol = volume24hBySymbol ?? {};
+    return unique.sort((a, b) => {
+      const va = vol[a] ?? 0;
+      const vb = vol[b] ?? 0;
+      if (vb !== va) return vb - va;
+      return a.localeCompare(b);
+    });
+  }, [markets, volume24hBySymbol]);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((s) => s.toLowerCase().includes(q));
+  }, [items, searchQuery]);
 
   return (
     <div className="market-dropdown" ref={divRef}>
+      <div
+        className="market-dropdown-search"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="search"
+          className="market-dropdown-search-input"
+          placeholder="Search markets"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          aria-label="Search markets"
+        />
+      </div>
       <div className="dropdown-list" role="menu">
         {items.length === 0 ? (
           <div className="empty">{'Loading…'}</div>
+        ) : filteredItems.length === 0 ? (
+          <div className="empty">{'No matches'}</div>
         ) : (
-          items.map((symbol) => (
+          filteredItems.map((symbol) => (
             <ButtonDiv
               key={symbol}
               className="dropdown-row"
