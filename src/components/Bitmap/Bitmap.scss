@@ -11,7 +11,7 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  box-shadow: 0 0 5px 5px rgba(143, 245, 255, 0.5);
+  animation: bitmap-breathe 4.5s ease-in-out infinite;
 
   .bitmap-resizing {
     @include center-item;
@@ -92,5 +92,32 @@
         color: $color-secondary;
       }
     }
+  }
+}
+
+// Matches landing `FrontlineRewardShowcase` / `frontline-reward-breathe`.
+@keyframes bitmap-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-primary, 0.15),
+      0 0 32px color-with-opacity($color-primary, 0.12),
+      0 0 64px color-with-opacity($color-secondary, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-secondary, 0.22),
+      0 0 48px color-with-opacity($color-primary, 0.22),
+      0 0 88px color-with-opacity($color-secondary, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bitmap {
+    animation: none;
+    box-shadow:
+      0 0 0 1px color-with-opacity($color-primary, 0.15),
+      0 0 32px color-with-opacity($color-primary, 0.12),
+      0 0 64px color-with-opacity($color-secondary, 0.06);
   }
 }
