@@ -77,11 +77,6 @@ const Bitmap = ({
     });
   }, [leaderboardData, useTestTemplate, leaderboardType]);
 
-  const totalPointsAllSquads = useMemo(
-    () => data.reduce((sum, row) => sum + row.total_points, 0),
-    [data],
-  );
-
   useEffect(() => {
     if (isFirstLeaderboardTypeRef.current) {
       isFirstLeaderboardTypeRef.current = false;
@@ -122,13 +117,10 @@ const Bitmap = ({
 
       lastLayoutSizeRef.current = { w: cw, h: ch };
 
-      const sizes = data.map((item) =>
-        BitmapHelper.computeRectangleSize(
-          item.total_points,
-          totalPointsAllSquads,
-          cw,
-          ch,
-        ),
+      const sizes = BitmapHelper.computeRectangleSizes(
+        data.map((item) => item.total_points),
+        cw,
+        ch,
       );
       const positions = BitmapHelper.computeNonOverlappingInitialPositions(
         sizes,
@@ -184,7 +176,7 @@ const Bitmap = ({
       clearResizeSchedule();
       ro.disconnect();
     };
-  }, [data, totalPointsAllSquads]);
+  }, [data]);
 
   // 2. Animation loop: integrate velocity, wall bounce, then pairwise collision resolve (no overlap)
   const animate = useCallback(() => {

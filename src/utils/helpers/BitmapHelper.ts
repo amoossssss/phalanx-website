@@ -41,6 +41,13 @@ class BitmapHelper {
   /** Max square side as a fraction of the smaller container dimension. */
   static readonly RECT_MAX_SIDE_FRACTION = 0.3;
 
+  /**
+   * Area share uses `total_points ** POINTS_TO_AREA_EXPONENT` (then renormalized).
+   * Values above 1 amplify gaps between leaders and the rest so sizes differ more when
+   * raw point totals are close (e.g. few squads). `1` matches the old linear split.
+   */
+  static readonly POINTS_TO_AREA_EXPONENT = 2;
+
   static readonly RESIZE_DEBOUNCE_MS = 500;
 
   /** Random tries per rectangle before falling back to a coarse grid scan. */
@@ -149,32 +156,69 @@ class BitmapHelper {
   }
 
   /**
-   * Square side length from point share: `area_i = (total_points / totalPointsAllSquads) * (W*H*fill)`,
-   * `side = sqrt(area_i)`, clamped so rects stay small vs the container.
+   * Square sizes from point weights: `points ** POINTS_TO_AREA_EXPONENT`, then normalized shares.
+   * Total area is driven toward `W*H*RECTANGLE_AREA_FILL` with uniform scaling so the max-side
+   * cap does not silently discard budget (unlike per-rect clamp). Ratios between squads follow shares.
    */
-  static computeRectangleSize = (
-    totalPoints: number,
-    totalPointsAllSquads: number,
+  static computeRectangleSizes(
+    points: number[],
     containerWidth: number,
     containerHeight: number,
-  ): { w: number; h: number } => {
+  ): { w: number; h: number }[] {
+    const p = BitmapHelper.POINTS_TO_AREA_EXPONENT;
+    if (points.length === 0) return [];
+
+    const weights = points.map((x) => Math.pow(Math.max(x, 1e-9), p));
+    const sumW = weights.reduce((a, b) => a + b, 0);
+    if (sumW <= 0) {
+      return points.map(() => ({
+        w: BitmapHelper.RECT_MIN_SIDE_PX,
+        h: BitmapHelper.RECT_MIN_SIDE_PX,
+      }));
+    }
+
     const W = Math.max(1, containerWidth);
     const H = Math.max(1, containerHeight);
     const minDim = Math.min(W, H);
     const maxSide = minDim * BitmapHelper.RECT_MAX_SIDE_FRACTION;
+    const minSide = BitmapHelper.RECT_MIN_SIDE_PX;
+    const budget = W * H * BitmapHelper.RECTANGLE_AREA_FILL;
 
-    if (totalPointsAllSquads <= 0 || totalPoints <= 0) {
-      const s = BitmapHelper.RECT_MIN_SIDE_PX;
-      return { w: s, h: s };
+    const shares = weights.map((w) => w / sumW);
+    let sides = shares.map((s) => Math.sqrt(s * budget));
+
+    const sumSq = (arr: number[]) => arr.reduce((acc, x) => acc + x * x, 0);
+
+    // 1) Uniform shrink so no side exceeds max (keeps area ratios).
+    const m = Math.max(...sides);
+    if (m > maxSide) {
+      const k = maxSide / m;
+      sides = sides.map((s) => s * k);
     }
 
-    const share = totalPoints / totalPointsAllSquads;
-    const totalAreaBudget = W * H * BitmapHelper.RECTANGLE_AREA_FILL;
-    const area = share * totalAreaBudget;
-    let side = Math.sqrt(area);
-    side = Math.min(maxSide, Math.max(BitmapHelper.RECT_MIN_SIDE_PX, side));
-    return { w: side, h: side };
-  };
+    // 2) Uniform grow toward full RECTANGLE_AREA_FILL budget while respecting maxSide.
+    let sq = sumSq(sides);
+    if (sq > 1e-9 && sq < budget - 1e-4) {
+      let k = Math.sqrt(budget / sq);
+      const nextMax = Math.max(...sides) * k;
+      if (nextMax > maxSide) {
+        k = maxSide / Math.max(...sides);
+      }
+      sides = sides.map((s) => s * k);
+    }
+
+    // 3) Min side floor, then shrink if we exceeded budget.
+    sides = sides.map((s) => Math.max(minSide, s));
+    sq = sumSq(sides);
+    if (sq > budget + 1e-4) {
+      const k = Math.sqrt(budget / sq);
+      sides = sides.map((s) => s * k);
+    }
+
+    sides = sides.map((s) => Math.min(maxSide, Math.max(minSide, s)));
+
+    return sides.map((s) => ({ w: s, h: s }));
+  }
 
   /**
    * Axis-aligned overlap: swap velocities on the shallow penetration axis and separate half the overlap each.
