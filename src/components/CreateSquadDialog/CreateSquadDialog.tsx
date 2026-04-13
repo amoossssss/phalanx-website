@@ -10,6 +10,7 @@ import ApiService from '@/utils/api/ApiService';
 import Media from '@/utils/constants/Media';
 import useNotification from '@/utils/hooks/useNotification';
 import { useUser } from '@/utils/contexts/UserContext';
+import Constants from '@/utils/constants/Constants';
 
 import './CreateSquadDialog.scss';
 
@@ -69,6 +70,8 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
           value={squadName}
           setValue={setSquadName}
           placeholder={'Your_Squad_Name'}
+          maxLength={Constants.MAX_SQUAD_NAME_LENGTH}
+          filterInput={(v) => v.slice(0, Constants.MAX_SQUAD_NAME_LENGTH)}
         />
 
         <ColorInput

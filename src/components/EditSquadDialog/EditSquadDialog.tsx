@@ -7,6 +7,7 @@ import ImageInput from '@/lib/ImageInput/ImageInput';
 import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
 
 import ApiService from '@/utils/api/ApiService';
+import Constants from '@/utils/constants/Constants';
 import Media from '@/utils/constants/Media';
 import useNotification from '@/utils/hooks/useNotification';
 import { SquadType } from '@/utils/constants/Types';
@@ -75,6 +76,8 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
           value={squadName}
           setValue={setSquadName}
           placeholder={'Your_Squad_Name'}
+          maxLength={Constants.MAX_SQUAD_NAME_LENGTH}
+          filterInput={(v) => v.slice(0, Constants.MAX_SQUAD_NAME_LENGTH)}
         />
 
         <ColorInput

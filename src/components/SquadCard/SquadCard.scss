@@ -37,6 +37,7 @@
 
     .squad-name {
       @include font-24;
+      word-break: break-all;
     }
 
     .squad-member-count {

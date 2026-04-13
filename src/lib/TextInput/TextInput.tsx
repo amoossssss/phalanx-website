@@ -16,6 +16,7 @@ type TextInputType = {
   errorMessage?: string;
   disabled?: boolean;
   filterInput?: (value: string) => string;
+  maxLength?: number;
 };
 
 const ErrorIcon = withColoredSvg(Media.icons.errorIcon);
@@ -32,6 +33,7 @@ const TextInput = ({
   errorMessage,
   disabled,
   filterInput,
+  maxLength,
 }: TextInputType) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -65,6 +67,7 @@ const TextInput = ({
           placeholder={placeholder}
           disabled={disabled}
           readOnly={disabled}
+          maxLength={maxLength}
         />
         {type === 'password' && (
           <ButtonDiv
