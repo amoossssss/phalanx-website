@@ -11,8 +11,11 @@
     @include row;
     align-items: center;
     justify-content: space-between;
+    gap: 1.6rem;
+    min-width: 0;
 
     .squad-title {
+      flex-shrink: 0;
       font-size: 5.6rem;
       font-weight: $font-weight-bold;
       color: $color-primary;
@@ -27,6 +30,17 @@
       padding: 0 1rem;
       box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
       position: relative;
+
+      &--my-squad {
+        min-width: 0;
+      }
+
+      .squad-button__name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
       &:hover {
         @include mini-scale(1.02);

@@ -9,6 +9,7 @@
     @include column;
     gap: 2rem;
     flex: 5;
+    min-width: 0;
 
     .bitmap-title {
       @include row;
@@ -80,6 +81,7 @@
 
   .right-section {
     flex: 2;
+    min-width: 0;
   }
 }
 

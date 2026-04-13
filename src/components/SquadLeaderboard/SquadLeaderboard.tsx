@@ -87,7 +87,9 @@ const SquadLeaderboard = ({
                     style={{ boxShadow: `0 0 2px 2px ${mySquad.color}` }}
                   />
                   <div className="info-section">
-                    <div className="squad-name">{`> ${mySquad.name}`}</div>
+                    <div className="squad-name">
+                      <span className="squad-name__text">{`> ${mySquad.name}`}</span>
+                    </div>
                     <div className="squad-info">
                       <div className="info-title">{`${leaderboardType}_Volume:`}</div>
                       <div className="info-content volume">
@@ -136,7 +138,9 @@ const SquadLeaderboard = ({
                       }}
                     />
                     <div className="info-section">
-                      <div className="squad-name">{`> ${item.squad.name}`}</div>
+                      <div className="squad-name">
+                        <span className="squad-name__text">{`> ${item.squad.name}`}</span>
+                      </div>
                       <div className="squad-info">
                         <div className="info-title">{`${leaderboardType}_Volume:`}</div>
                         <div className="info-content volume">

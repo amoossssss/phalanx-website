@@ -98,10 +98,14 @@ const Squad = () => {
       <div className="squad-title-container">
         <div className="squad-title">{'Squad_Hall'}</div>
         <ButtonDiv
-          className="squad-button"
+          className={`squad-button${mySquad ? ' squad-button--my-squad' : ''}`}
           onClick={mySquad ? handleViewSquad : handleCreateSquad}
         >
-          {mySquad ? mySquad.name : '<Create_Squad>'}
+          {mySquad ? (
+            <span className="squad-button__name">{mySquad.name}</span>
+          ) : (
+            '<Create_Squad>'
+          )}
           {mySquad && <div className="tag">{'<My_Squad>'}</div>}
         </ButtonDiv>
       </div>

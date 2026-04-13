@@ -34,10 +34,21 @@
   .name-container {
     @include column;
     gap: 0.4rem;
+    min-width: 0;
+    width: 100%;
 
     .squad-name {
       @include font-24;
-      word-break: break-all;
+      min-width: 0;
+      max-width: 100%;
+      width: 100%;
+
+      .squad-name__text {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
 
     .squad-member-count {

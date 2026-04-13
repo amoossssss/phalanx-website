@@ -18,6 +18,10 @@
   margin-top: 2rem;
   position: relative;
   min-height: 36rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   &__skeleton-layer {
     position: absolute;
@@ -48,6 +52,8 @@
     z-index: 0;
     @include column;
     gap: 3rem;
+    min-width: 0;
+    width: 100%;
 
     &--visible {
       animation: squad-leaderboard-content-in 0.55s ease 0.06s both;
@@ -73,6 +79,10 @@
     padding: 1.2rem 1rem 1rem;
     background: $color-neutral-light;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 
     &:hover {
       @include mini-scale(1.02);
@@ -82,15 +92,25 @@
       width: 6rem;
       height: 6rem;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
     .info-section {
       @include column;
       gap: 0.4rem;
       flex: 1;
+      min-width: 0;
 
       .squad-name {
         @include font-16-bold;
+        min-width: 0;
+
+        .squad-name__text {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .squad-info {

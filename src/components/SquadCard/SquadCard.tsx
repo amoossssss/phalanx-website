@@ -63,10 +63,9 @@ const SquadCard = ({
       </div>
 
       <div className="name-container">
-        <ButtonDiv
-          className="squad-name"
-          onClick={handleViewSquad}
-        >{`> ${name}`}</ButtonDiv>
+        <ButtonDiv className="squad-name" onClick={handleViewSquad}>
+          <span className="squad-name__text">{`> ${name}`}</span>
+        </ButtonDiv>
         <div className="squad-member-count">{`Member_Count: ${memberCount} / ${Constants.MAX_MEMBERS}`}</div>
       </div>
 
