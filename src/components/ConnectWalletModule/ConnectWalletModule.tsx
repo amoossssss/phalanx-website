@@ -45,11 +45,14 @@ const ConnectWalletModule = () => {
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [closeDropdown]);
 
+  // Do not clear pending sign-in while `connecting` is true: the modal often
+  // closes before `connected` flips to true, which would otherwise clear the
+  // ref and skip the signature step until the user clicks again.
   useEffect(() => {
-    if (!visible && pendingSignInRef.current && !connected) {
+    if (!visible && pendingSignInRef.current && !connected && !connecting) {
       pendingSignInRef.current = false;
     }
-  }, [visible, connected]);
+  }, [visible, connected, connecting]);
 
   const runAuth = useCallback(
     async (walletAddress: string) => {
