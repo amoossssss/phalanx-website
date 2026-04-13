@@ -1,21 +1,16 @@
-import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import JoinSquadDialog from '@/components/JoinSquadDialog/JoinSquadDialog';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import Constants from '@/utils/constants/Constants';
 import Media from '@/utils/constants/Media';
 import StringHelper from '@/utils/helpers/StringHelper';
-import useNotification from '@/utils/hooks/useNotification';
 import { useUser } from '@/utils/contexts/UserContext';
-import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './SquadCard.scss';
 
 type SquadCardType = {
-  refreshSquadList: () => Promise<void>;
+  handleJoinSquad: () => void;
   avatarUrl: string;
   name: string;
   squadId: string;
@@ -29,7 +24,7 @@ type SquadCardType = {
 };
 
 const SquadCard = ({
-  refreshSquadList,
+  handleJoinSquad,
   avatarUrl,
   name,
   squadId,
@@ -42,26 +37,9 @@ const SquadCard = ({
   color,
 }: SquadCardType) => {
   const navigate = useNavigate();
-  const { refreshUser, mySquad } = useUser();
-  const { isLogin } = useAuth();
-  const { snackbar } = useNotification();
-
-  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const { mySquad } = useUser();
 
   const full = memberCount >= 10;
-
-  const handleJoinSquad = () => {
-    if (!isLogin) {
-      snackbar.error('Connect wallet to join squad.');
-      return;
-    }
-    setJoinDialogOpen(true);
-  };
-
-  const handleJoined = useCallback(async () => {
-    await refreshUser();
-    await refreshSquadList();
-  }, [refreshSquadList, refreshUser]);
 
   const handleViewSquad = () => {
     navigate(`/squad/${squadId}`);
@@ -115,17 +93,6 @@ const SquadCard = ({
       >
         {full ? '>Squad_Full<' : isMySquad ? '<My_Squad>' : '<Join_Squad>'}
       </ButtonDiv>
-
-      {joinDialogOpen && (
-        <JoinSquadDialog
-          squadId={squadId}
-          squadName={name}
-          memberCount={memberCount}
-          leader={leader}
-          close={() => setJoinDialogOpen(false)}
-          onJoined={handleJoined}
-        />
-      )}
     </div>
   );
 };

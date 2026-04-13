@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import CreateSquadDialog from '@/components/CreateSquadDialog/CreateSquadDialog';
+import JoinSquadDialog from '@/components/JoinSquadDialog/JoinSquadDialog';
 import SquadCard from '@/components/SquadCard/SquadCard';
 import SquadCardSkeleton from '@/components/SquadCard/SquadCardSkeleton';
 import Pagination from '@/components/Pagination/Pagination';
@@ -19,7 +20,7 @@ import './Squad.scss';
 
 const Squad = () => {
   const navigate = useNavigate();
-  const { mySquad } = useUser();
+  const { mySquad, refreshUser } = useUser();
   const { isLogin } = useAuth();
   const { snackbar } = useNotification();
 
@@ -31,6 +32,7 @@ const Squad = () => {
   const [orderBy, setOrderBy] = useState<SquadListOrderBy>('time');
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [joinTarget, setJoinTarget] = useState<SquadType | null>(null);
 
   const fetchSquadList = useCallback(
     async ({ silent = false }: { silent: boolean }) => {
@@ -71,6 +73,20 @@ const Squad = () => {
     if (!mySquad) return;
     navigate(`/squad/${mySquad.squadId}`);
   };
+
+  const handleJoinSquad = (squad: SquadType) => {
+    if (!isLogin) {
+      snackbar.error('Connect wallet to join squad.');
+      return;
+    }
+    if (mySquad !== null) return;
+    setJoinTarget(squad);
+  };
+
+  const handleJoined = useCallback(async () => {
+    await refreshUser();
+    await fetchSquadList({ silent: false });
+  }, [fetchSquadList, refreshUser]);
 
   useEffect(() => {
     if (isCreateDialogOpen) return;
@@ -139,7 +155,7 @@ const Squad = () => {
                 <SquadCard
                   key={item.squadId}
                   isMySquad={mySquad?.squadId === item.squadId}
-                  refreshSquadList={() => fetchSquadList({ silent: false })}
+                  handleJoinSquad={() => handleJoinSquad(item)}
                   {...item}
                 />
               ))}
@@ -165,6 +181,17 @@ const Squad = () => {
 
       {isCreateDialogOpen && (
         <CreateSquadDialog close={() => setIsCreateDialogOpen(false)} />
+      )}
+
+      {joinTarget !== null && (
+        <JoinSquadDialog
+          squadId={joinTarget.squadId}
+          squadName={joinTarget.name}
+          memberCount={joinTarget.memberCount}
+          leader={joinTarget.leader}
+          close={() => setJoinTarget(null)}
+          onJoined={handleJoined}
+        />
       )}
     </div>
   );
