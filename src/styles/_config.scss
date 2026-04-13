@@ -241,6 +241,7 @@ $font-family-display: 'Space Grotesk', 'Montserrat', sans-serif;
   z-index: 100;
   overflow: hidden;
   position: fixed;
+  border: 0;
 }
 
 @keyframes swipe-opacity {
