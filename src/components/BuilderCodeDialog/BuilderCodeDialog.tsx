@@ -33,7 +33,7 @@ const BuilderCodeDialog = ({
         <div className="dialog-title">{'<Builder_Code_Auth>'}</div>
 
         <div className="dialog-text">
-          {'To trade through this app,\nplease authorize our builder code:'}
+          {'To trade through _Phalanx,\nplease authorize our builder code:'}
         </div>
 
         <div className="code-block">
