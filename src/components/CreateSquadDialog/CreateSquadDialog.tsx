@@ -27,12 +27,15 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
   const [squadName, setSquadName] = useState('');
   const [squadColor, setSquadColor] = useState('#8ff5ff');
   const [squadAvatar, setSquadAvatar] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const disableCreate = useMemo(() => {
-    return squadName === '';
-  }, [squadName]);
+    return squadName === '' || isSubmitting;
+  }, [squadName, isSubmitting]);
 
   const handleCreateSquad = () => {
+    if (isSubmitting) return;
+
     const formData = new FormData();
     formData.append('squad_name', squadName);
     formData.append('squad_color', squadColor);
@@ -41,6 +44,7 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
       formData.append('avatar_file', squadAvatar);
     }
 
+    setIsSubmitting(true);
     ApiService.squad
       .createSquad(formData)
       .then(async () => {
@@ -50,14 +54,21 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
       })
       .catch((err) => {
         snackbar.error('Something went wrong, please try again.');
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <dialog
-      className="create-squad-dialog"
+      className={`create-squad-dialog${
+        isSubmitting ? ' create-squad-dialog--submitting' : ''
+      }`}
       open
+      aria-busy={isSubmitting}
       onClick={(e) => {
+        if (isSubmitting) return;
         if (e.target === e.currentTarget) close();
       }}
     >
@@ -72,6 +83,7 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
           placeholder={'Your_Squad_Name'}
           maxLength={Constants.MAX_SQUAD_NAME_LENGTH}
           filterInput={(v) => v.slice(0, Constants.MAX_SQUAD_NAME_LENGTH)}
+          disabled={isSubmitting}
         />
 
         <ColorInput
@@ -89,14 +101,18 @@ const CreateSquadDialog = ({ close }: CreateSquadDialogType) => {
         />
 
         <ButtonDiv
-          className="create-button"
+          className={`create-button ${isSubmitting ? ' loading' : ''}`}
           onClick={handleCreateSquad}
           disabled={disableCreate}
         >
-          {'<Create>'}
+          {isSubmitting ? '> Creating_Squad...' : '<Create>'}
         </ButtonDiv>
 
-        <ButtonDiv className="close-button" onClick={close}>
+        <ButtonDiv
+          className="close-button"
+          onClick={close}
+          disabled={isSubmitting}
+        >
           <CloseIcon color={'#ff51fa'} size={20} />
         </ButtonDiv>
       </div>
