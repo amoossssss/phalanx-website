@@ -153,9 +153,11 @@ const SquadSpace = () => {
               </div>
               <div className="leader">
                 <div>{'Leader: '}</div>
-                <div className="leader-name">{`@${StringHelper.truncateName(
-                  squad.leader,
-                )}`}</div>
+                <div className="leader-name">
+                  <span className="leader-name__text">{`@${StringHelper.truncateName(
+                    squad.leader,
+                  )}`}</span>
+                </div>
               </div>
             </div>
 

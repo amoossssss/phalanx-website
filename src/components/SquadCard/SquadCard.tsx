@@ -56,9 +56,11 @@ const SquadCard = ({
         />
         <div className="leader">
           <div>{'Leader'}</div>
-          <div className="leader-name">{`@${StringHelper.truncateName(
-            leader,
-          )}`}</div>
+          <div className="leader-name">
+            <span className="leader-name__text">{`@${StringHelper.truncateName(
+              leader,
+            )}`}</span>
+          </div>
         </div>
       </div>
 

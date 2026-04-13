@@ -257,23 +257,23 @@ const SquadMemberCard = ({
       <div className="top-section">
         {member.alias ? (
           <div className="name-container">
-            <div className="main-name">{`@${member.alias}`}</div>
-            <ButtonDiv
-              className="sub-name"
-              onClick={copyWalletAddress}
-            >{`${StringHelper.truncateAddress(
-              member.walletAddress,
-            )}`}</ButtonDiv>
+            <div className="main-name">
+              <span className="main-name__text">{`@${member.alias}`}</span>
+            </div>
+            <ButtonDiv className="sub-name" onClick={copyWalletAddress}>
+              <span className="sub-name__text">
+                {StringHelper.truncateAddress(member.walletAddress)}
+              </span>
+            </ButtonDiv>
             <div className="open_positions">{`> Open_positions_count: ${openCountDisplay}`}</div>
           </div>
         ) : (
           <div className="name-container">
-            <ButtonDiv
-              className="main-name"
-              onClick={copyWalletAddress}
-            >{`@${StringHelper.truncateAddress(
-              member.walletAddress,
-            )}`}</ButtonDiv>
+            <ButtonDiv className="main-name" onClick={copyWalletAddress}>
+              <span className="main-name__text">{`@${StringHelper.truncateAddress(
+                member.walletAddress,
+              )}`}</span>
+            </ButtonDiv>
             <div className="open_positions">{`> Open_positions_count: ${openCountDisplay}`}</div>
           </div>
         )}

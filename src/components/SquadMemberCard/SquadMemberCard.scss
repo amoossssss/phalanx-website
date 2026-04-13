@@ -7,23 +7,51 @@
   border: 2px solid $color-primary-dark;
   box-sizing: border-box;
   position: relative;
+  width: 100%;
+  min-width: 0;
 
   .top-section {
     @include row;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.6rem;
+    min-width: 0;
 
     .name-container {
       @include column;
+      flex: 1 1 0;
+      min-width: 0;
+      width: 100%;
 
       .main-name {
         @include font-20;
         color: $color-primary;
+        min-width: 0;
+        max-width: 100%;
+
+        .main-name__text {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .sub-name {
         @include font-12;
         color: $color-white-50-percent;
         margin-left: 2rem;
+        min-width: 0;
+        max-width: 100%;
+        align-self: stretch;
+        justify-content: flex-start;
+
+        .sub-name__text {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .open_positions {
@@ -38,6 +66,7 @@
       padding: 1rem 1.6rem;
       box-sizing: border-box;
       margin-left: auto;
+      flex-shrink: 0;
 
       .earnings-item {
         @include column;

@@ -71,10 +71,25 @@
         @include font-12;
         gap: 0.4rem;
         align-items: flex-end;
+        min-width: 0;
+        width: 100%;
+
+        > div:first-child {
+          flex-shrink: 0;
+        }
 
         .leader-name {
           @include font-16-bold;
           color: $color-primary;
+          flex: 1 1 0;
+          min-width: 0;
+
+          .leader-name__text {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
       }
     }

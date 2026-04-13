@@ -4,6 +4,7 @@
   @include column;
   gap: 1.6rem;
   width: 100%;
+  min-width: 0;
 
   .member-table {
     @include column;

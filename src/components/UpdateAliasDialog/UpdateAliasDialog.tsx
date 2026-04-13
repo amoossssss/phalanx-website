@@ -4,6 +4,7 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import TextInput from '@/lib/TextInput/TextInput';
 
 import ApiService from '@/utils/api/ApiService';
+import Constants from '@/utils/constants/Constants';
 import Media from '@/utils/constants/Media';
 import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
 import useNotification from '@/utils/hooks/useNotification';
@@ -55,6 +56,7 @@ const UpdateAliasDialog = ({ close }: UpdateAliasDialogType) => {
           value={aliasValue}
           setValue={setAliasValue}
           placeholder={'Your_Wallet_Alias'}
+          maxLength={Constants.MAX_ALIAS_LENGTH}
         />
 
         <ButtonDiv
