@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
+import FrontlineLeaderboardColumn from '@/components/FrontlineLeaderboardColumn/FrontlineLeaderboardColumn';
 import SeasonSelector from '@/components/SeasonSelector/SeasonSelector';
 
 import ApiService from '@/utils/api/ApiService';
@@ -11,7 +12,6 @@ import { SquadType } from '@/utils/constants/Types';
 import { useUser } from '@/utils/contexts/UserContext';
 import type {
   FrontlineListItem,
-  FrontlineRankingsItem,
   FrontlineRankingsResponse,
   FrontlineSquadRankingResponse,
 } from '@/utils/api/instances/frontline/service';
@@ -127,138 +127,6 @@ function FrontlineRewardDetails({
     </div>
   );
 }
-
-const FirepowerColumn = ({
-  items,
-  onSquadClick,
-  mySquadId,
-  visibleCount,
-  onLoadMore,
-}: {
-  items: FrontlineRankingsItem[];
-  onSquadClick: (id: string) => void;
-  mySquadId: string | null;
-  visibleCount: number;
-  onLoadMore: () => void;
-}) => {
-  const sorted = useMemo(
-    () => [...items].sort((a, b) => a.volume_rank - b.volume_rank),
-    [items],
-  );
-
-  const visible = useMemo(
-    () => sorted.slice(0, visibleCount),
-    [sorted, visibleCount],
-  );
-
-  const hasMore = sorted.length > visibleCount;
-
-  return (
-    <div className="frontline-column">
-      <div className="frontline-column__title">{'Firepower'}</div>
-      <div className="frontline-column__subtitle">{'Volume_Leaderboard'}</div>
-      <div className="frontline-column__list">
-        {visible.map((item) => (
-          <ButtonDiv
-            key={item.squad.id}
-            className="frontline-row"
-            onClick={() => onSquadClick(item.squad.id)}
-          >
-            <span className="frontline-row__rank">#{item.volume_rank}</span>
-            <img
-              className="frontline-row__avatar"
-              src={
-                item.squad.avatar_url ? item.squad.avatar_url : Media.favicon
-              }
-              alt=""
-              style={{ boxShadow: `0 0 2px 2px ${item.squad.color}` }}
-            />
-            <div className="frontline-row__name">{`> ${item.squad.name}`}</div>
-            <div className="frontline-row__metric volume">
-              {StringHelper.formatCompactNumber(item.volume)}
-            </div>
-            {mySquadId === item.squad.id && (
-              <div className="my-squad-tag">{'My_Squad'}</div>
-            )}
-          </ButtonDiv>
-        ))}
-      </div>
-      {hasMore && (
-        <ButtonDiv className="frontline-column__load-more" onClick={onLoadMore}>
-          {'<View_More>'}
-        </ButtonDiv>
-      )}
-    </div>
-  );
-};
-
-const WarChestColumn = ({
-  items,
-  onSquadClick,
-  mySquadId,
-  visibleCount,
-  onLoadMore,
-}: {
-  items: FrontlineRankingsItem[];
-  onSquadClick: (id: string) => void;
-  mySquadId: string | null;
-  visibleCount: number;
-  onLoadMore: () => void;
-}) => {
-  const sorted = useMemo(
-    () => [...items].sort((a, b) => a.pnl_rank - b.pnl_rank),
-    [items],
-  );
-
-  const visible = useMemo(
-    () => sorted.slice(0, visibleCount),
-    [sorted, visibleCount],
-  );
-
-  const hasMore = sorted.length > visibleCount;
-
-  return (
-    <div className="frontline-column">
-      <div className="frontline-column__title">{'The_War_Chest'}</div>
-      <div className="frontline-column__subtitle">{'PnL_Leaderboard'}</div>
-      <div className="frontline-column__list">
-        {visible.map((item) => (
-          <ButtonDiv
-            key={item.squad.id}
-            className="frontline-row"
-            onClick={() => onSquadClick(item.squad.id)}
-          >
-            <span className="frontline-row__rank">#{item.pnl_rank}</span>
-            <img
-              className="frontline-row__avatar"
-              src={
-                item.squad.avatar_url ? item.squad.avatar_url : Media.favicon
-              }
-              alt=""
-              style={{ boxShadow: `0 0 2px 2px ${item.squad.color}` }}
-            />
-            <div className="frontline-row__name">{`> ${item.squad.name}`}</div>
-            <div
-              className={`frontline-row__metric${
-                item.pnl < 0 ? ' negative' : ''
-              }`}
-            >
-              {StringHelper.formatCompactNumber(item.pnl)}
-            </div>
-            {mySquadId === item.squad.id && (
-              <div className="my-squad-tag">{'My_Squad'}</div>
-            )}
-          </ButtonDiv>
-        ))}
-      </div>
-      {hasMore && (
-        <ButtonDiv className="frontline-column__load-more" onClick={onLoadMore}>
-          {'<View_More>'}
-        </ButtonDiv>
-      )}
-    </div>
-  );
-};
 
 function FrontlineMySquadSummary({
   mySquad,
@@ -511,14 +379,16 @@ const Frontline = () => {
             {rankings && !isLoadingRankings && (
               <>
                 <div className="frontline-boards frontline-boards--visible">
-                  <FirepowerColumn
+                  <FrontlineLeaderboardColumn
+                    variant="firepower"
                     items={rankings.items}
                     onSquadClick={handleSquadClick}
                     mySquadId={mySquad?.squadId ?? null}
                     visibleCount={leaderboardFirepowerVisible}
                     onLoadMore={handleLoadMoreFirepower}
                   />
-                  <WarChestColumn
+                  <FrontlineLeaderboardColumn
+                    variant="warChest"
                     items={rankings.items}
                     onSquadClick={handleSquadClick}
                     mySquadId={mySquad?.squadId ?? null}
