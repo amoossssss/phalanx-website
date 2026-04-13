@@ -80,7 +80,7 @@ const SquadCard = ({
 
         <div className="earnings-item pnl">
           <div>{'Total_PnL'}</div>
-          <div className="earnings-number">
+          <div className={`earnings-number ${pnl < 0 ? 'negative' : ''}`}>
             {StringHelper.formatCompactNumber(pnl)}
           </div>
         </div>

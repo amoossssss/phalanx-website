@@ -73,6 +73,10 @@
       &.pnl {
         .earnings-number {
           color: $color-primary;
+
+          &.negative {
+            color: $color-secondary;
+          }
         }
       }
     }
