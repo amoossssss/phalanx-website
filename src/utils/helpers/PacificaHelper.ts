@@ -2397,8 +2397,10 @@ class PacificaHelper {
   static getCandles = async (args: {
     market: string;
     resolution: string;
-    from: number; // unix seconds
-    to: number; // unix seconds
+    /** Inclusive range start (Unix **milliseconds**, matches Pacifica `/kline`). */
+    from: number;
+    /** Inclusive range end (Unix **milliseconds**). */
+    to: number;
   }): Promise<PacificaCandle[]> => {
     const url = new URL(`${PACIFICA_API_BASE}/kline`);
     url.searchParams.set('symbol', args.market);

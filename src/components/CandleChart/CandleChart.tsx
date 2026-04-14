@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CandlestickSeries,
   createChart,
+  type CandlestickData,
   type IChartApi,
   type ISeriesApi,
+  type LogicalRange,
   type UTCTimestamp,
   type Time,
   TickMarkType,
@@ -24,6 +26,23 @@ type CandleChartProps = {
   pricePrecision?: number;
 };
 
+/** How close the visible window must be to the oldest bar (logical index) before we fetch older candles. */
+const LOAD_MORE_LOGICAL_THRESHOLD = 18;
+
+const candleToBar = (c: {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}): CandlestickData => ({
+  time: c.time as UTCTimestamp,
+  open: c.open,
+  high: c.high,
+  low: c.low,
+  close: c.close,
+});
+
 const CandleChart = ({
   market,
   resolution = '1h',
@@ -33,6 +52,8 @@ const CandleChart = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const loadingMoreRef = useRef(false);
+  const hasMoreHistoryRef = useRef(true);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -157,13 +178,106 @@ const CandleChart = ({
   }, [pricePrecision]);
 
   useEffect(() => {
+    const chart = chartRef.current;
     const series = seriesRef.current;
-    if (!series) return;
+    if (!series || !chart) return;
     if (!market) return;
 
     let cancelled = false;
     setIsLoading(true);
-    let unsubscribe: (() => void) | null = null;
+    loadingMoreRef.current = false;
+    hasMoreHistoryRef.current = true;
+    let unsubscribeWs: (() => void) | null = null;
+
+    const loadOlderCandles = async () => {
+      if (cancelled || loadingMoreRef.current || !hasMoreHistoryRef.current) {
+        return;
+      }
+      const s = seriesRef.current;
+      const ch = chartRef.current;
+      if (!s || !ch) return;
+
+      const rows = s.data();
+      if (!rows.length) return;
+
+      const first = rows[0];
+      const oldestSec = first.time as number;
+      if (!Number.isFinite(oldestSec)) return;
+
+      const chunkMs = CandleChartHelper.rangeFromResolution(resolution);
+      const toMs = oldestSec * 1000 - 1;
+      const fromMs = Math.max(0, toMs - chunkMs);
+      if (fromMs >= toMs) {
+        hasMoreHistoryRef.current = false;
+        return;
+      }
+
+      loadingMoreRef.current = true;
+      const beforeLogical = ch.timeScale().getVisibleLogicalRange();
+      const prevCount = rows.length;
+
+      try {
+        const older = await PacificaHelper.getCandles({
+          market,
+          resolution,
+          from: fromMs,
+          to: toMs,
+        });
+        if (cancelled) return;
+
+        if (!older.length) {
+          hasMoreHistoryRef.current = false;
+          return;
+        }
+
+        const map = new Map<number, CandlestickData>();
+        for (const row of rows) {
+          if (!row || !('open' in row)) continue;
+          const bar = row as CandlestickData;
+          map.set(bar.time as number, {
+            time: bar.time,
+            open: bar.open,
+            high: bar.high,
+            low: bar.low,
+            close: bar.close,
+          });
+        }
+        for (const c of older) {
+          if (!map.has(c.time)) {
+            map.set(c.time, candleToBar(c));
+          }
+        }
+        const merged = Array.from(map.values()).sort(
+          (a, b) => (a.time as number) - (b.time as number),
+        );
+
+        if (merged.length === prevCount) {
+          hasMoreHistoryRef.current = false;
+          return;
+        }
+
+        s.setData(merged);
+
+        const added = merged.length - prevCount;
+        if (beforeLogical && added > 0) {
+          ch.timeScale().setVisibleLogicalRange({
+            from: beforeLogical.from + added,
+            to: beforeLogical.to + added,
+          });
+        }
+      } catch (e) {
+        console.warn('load older candles failed', e);
+      } finally {
+        loadingMoreRef.current = false;
+      }
+    };
+
+    const onVisibleLogicalRangeChange = (range: LogicalRange | null) => {
+      if (cancelled || range === null) return;
+      if (range.from === undefined) return;
+      if (range.from > LOAD_MORE_LOGICAL_THRESHOLD) return;
+      void loadOlderCandles();
+    };
 
     (async () => {
       try {
@@ -174,18 +288,14 @@ const CandleChart = ({
           to: timeRange.to,
         });
         if (cancelled) return;
-        series.setData(
-          candles.map((c) => ({
-            time: c.time as UTCTimestamp,
-            open: c.open,
-            high: c.high,
-            low: c.low,
-            close: c.close,
-          })),
-        );
+        series.setData(candles.map(candleToBar));
+
+        chart
+          .timeScale()
+          .subscribeVisibleLogicalRangeChange(onVisibleLogicalRangeChange);
 
         // Live updates via websocket candle stream
-        unsubscribe = PacificaHelper.subscribeCandles({
+        unsubscribeWs = PacificaHelper.subscribeCandles({
           market,
           interval: resolution,
           onCandle: (c) => {
@@ -214,7 +324,14 @@ const CandleChart = ({
 
     return () => {
       cancelled = true;
-      unsubscribe?.();
+      unsubscribeWs?.();
+      try {
+        chart
+          .timeScale()
+          .unsubscribeVisibleLogicalRangeChange(onVisibleLogicalRangeChange);
+      } catch {
+        // chart may already be disposed
+      }
     };
   }, [market, resolution, timeRange.from, timeRange.to]);
 
