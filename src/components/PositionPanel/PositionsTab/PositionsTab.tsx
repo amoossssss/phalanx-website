@@ -393,11 +393,13 @@ const PositionsTab = ({ markets, onSelectSymbol }: PositionsTabProps) => {
                       : '—'}
                   </td>
                   <td className="col liq">
-                    {p.liquidationPrice !== null
-                      ? p.liquidationPrice.toLocaleString(undefined, {
+                    {p.liquidationPrice === null
+                      ? '—'
+                      : p.liquidationPrice < 0
+                      ? 'N/A'
+                      : p.liquidationPrice.toLocaleString(undefined, {
                           maximumFractionDigits: 2,
-                        })
-                      : '—'}
+                        })}
                   </td>
                   <td className="col margin">
                     {marginUsd !== null

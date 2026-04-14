@@ -11,6 +11,7 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 
 import ApiService from '@/utils/api/ApiService';
 import StringHelper from '@/utils/helpers/StringHelper';
+import useNotification from '@/utils/hooks/useNotification';
 import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './ConnectWalletModule.scss';
@@ -21,6 +22,7 @@ const ConnectWalletModule = () => {
   const { visible, setVisible } = useWalletModal();
 
   const { isLogin, userAddress, login, logout } = useAuth();
+  const { snackbar } = useNotification();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,6 +31,8 @@ const ConnectWalletModule = () => {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   const pendingSignInRef = useRef(false);
+  /** Prevents overlapping re-verify when the wallet account changes while connected. */
+  const walletReauthRef = useRef(false);
 
   const displayAddress = StringHelper.truncateAddress(userAddress ?? '');
 
@@ -103,6 +107,33 @@ const ConnectWalletModule = () => {
       console.error(e);
     });
   }, [connected, publicKey, isLogin, runAuth]);
+
+  /**
+   * Wallet extension switched account while still "connected": session cookie
+   * is for another address — re-run nonce + verify for the active public key.
+   */
+  useEffect(() => {
+    if (!connected || !publicKey || !isLogin) return;
+    const active = publicKey.toBase58();
+    if (!userAddress || active === userAddress) return;
+    if (walletReauthRef.current) return;
+
+    walletReauthRef.current = true;
+    void runAuth(active)
+      .then(() => {
+        snackbar.success('Signed in with the new wallet.');
+      })
+      .catch((e) => {
+        console.error('wallet switch re-verify failed', e);
+        snackbar.error(
+          'Could not verify the new wallet. Try disconnecting and connecting again.',
+        );
+        logout();
+      })
+      .finally(() => {
+        walletReauthRef.current = false;
+      });
+  }, [connected, publicKey, isLogin, userAddress, runAuth, snackbar, logout]);
 
   const handleLogout = useCallback(async () => {
     closeDropdown();
