@@ -11,7 +11,6 @@ _Phalanx_ is the frontend for a Pacifica-powered squad GameFi experience: trader
 - **State & data:** Redux Toolkit, TanStack Query, TanStack Table
 - **Solana:** `@solana/web3.js`, wallet adapters (Phantom, Solflare, React UI)
 - **Charts:** TradingView Lightweight Charts
-- **i18n:** i18next / react-i18next
 - **Other:** Axios, Notistack, Pacifica TypeScript SDK (`pacifica-ts-sdk`), react-tweet
 
 Tooling: ESLint, Prettier, `env-cmd` for optional env-file variants.

@@ -9,8 +9,6 @@ import SolanaWalletProviders from '@/lib/SolanaWalletProviders/SolanaWalletProvi
 import { AuthProvider } from '@/utils/contexts/AuthContext';
 import { UserProvider } from '@/utils/contexts/UserContext';
 
-import '@/utils/i18n/i18n';
-
 const AuthThenUser = ({ children }: { children: ReactNode }) => (
   <AuthProvider>
     <UserProvider>{children}</UserProvider>
