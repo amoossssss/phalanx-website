@@ -28,18 +28,28 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
   const [squadName, setSquadName] = useState(squad.name);
   const [squadColor, setSquadColor] = useState(squad.color);
   const [squadAvatar, setSquadAvatar] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const disableSave = useMemo(() => {
     const nameTrimmed = squadName.trim();
-    if (nameTrimmed.length === 0) return true;
+    if (nameTrimmed.length === 0 || isSubmitting) return true;
 
     const nameChanged = nameTrimmed !== squad.name;
     const colorChanged = squadColor !== squad.color;
     const avatarChanged = squadAvatar !== null;
     return !(nameChanged || colorChanged || avatarChanged);
-  }, [squadName, squadColor, squadAvatar, squad.name, squad.color]);
+  }, [
+    squadName,
+    squadColor,
+    squadAvatar,
+    squad.name,
+    squad.color,
+    isSubmitting,
+  ]);
 
   const handleSave = () => {
+    if (isSubmitting) return;
+
     const formData = new FormData();
     formData.append('name', squadName.trim());
     formData.append('color', squadColor);
@@ -47,6 +57,7 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
       formData.append('avatar_file', squadAvatar);
     }
 
+    setIsSubmitting(true);
     ApiService.squad
       .editSquad(squad.squadId, formData)
       .then(() => {
@@ -56,14 +67,21 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
       })
       .catch(() => {
         snackbar.error('Something went wrong, please try again.');
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <dialog
-      className="edit-squad-dialog"
+      className={`edit-squad-dialog${
+        isSubmitting ? ' edit-squad-dialog--submitting' : ''
+      }`}
       open
+      aria-busy={isSubmitting}
       onClick={(e) => {
+        if (isSubmitting) return;
         if (e.target === e.currentTarget) close();
       }}
     >
@@ -78,6 +96,7 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
           placeholder={'Your_Squad_Name'}
           maxLength={Constants.MAX_SQUAD_NAME_LENGTH}
           filterInput={(v) => v.slice(0, Constants.MAX_SQUAD_NAME_LENGTH)}
+          disabled={isSubmitting}
         />
 
         <ColorInput
@@ -95,14 +114,18 @@ const EditSquadDialog = ({ squad, close, onSaved }: EditSquadDialogProps) => {
         />
 
         <ButtonDiv
-          className="save-button"
+          className={`save-button ${isSubmitting ? ' loading' : ''}`}
           onClick={handleSave}
           disabled={disableSave}
         >
-          {'<Save>'}
+          {isSubmitting ? '> Saving_Squad...' : '<Save>'}
         </ButtonDiv>
 
-        <ButtonDiv className="close-button" onClick={close}>
+        <ButtonDiv
+          className="close-button"
+          onClick={close}
+          disabled={isSubmitting}
+        >
           <CloseIcon color={'#ff51fa'} size={20} />
         </ButtonDiv>
       </div>
