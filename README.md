@@ -8,7 +8,8 @@ _Phalanx_ is the frontend for a Pacifica-powered squad GameFi experience: trader
 
 - **Framework:** [Next.js](https://nextjs.org/) 14 (App Router), **React** 18, **TypeScript**
 - **Styling:** SCSS
-- **State & data:** Redux Toolkit, TanStack Query, TanStack Table
+- **State & data:** React context (`AuthContext`, `UserContext`), local component state, `fetch` / Axios for HTTP
+- **Routing:** `react-router-dom`
 - **Solana:** `@solana/web3.js`, wallet adapters (Phantom, Solflare, React UI)
 - **Charts:** TradingView Lightweight Charts
 - **Other:** Axios, Notistack, Pacifica TypeScript SDK (`pacifica-ts-sdk`), react-tweet

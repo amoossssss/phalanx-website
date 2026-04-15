@@ -7,10 +7,10 @@ import ImageInput from '@/lib/ImageInput/ImageInput';
 import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
 
 import ApiService from '@/utils/api/ApiService';
+import Constants from '@/utils/constants/Constants';
 import Media from '@/utils/constants/Media';
 import useNotification from '@/utils/hooks/useNotification';
 import { useUser } from '@/utils/contexts/UserContext';
-import Constants from '@/utils/constants/Constants';
 
 import './CreateSquadDialog.scss';
 

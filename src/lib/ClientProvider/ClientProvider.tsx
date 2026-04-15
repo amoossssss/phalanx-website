@@ -1,6 +1,5 @@
 import { ReactNode, Fragment } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SnackbarProvider } from 'notistack';
 
 import NoSSR from '@/lib/NoSSR/NoSSR';
@@ -22,10 +21,7 @@ const SolanaThenAuth = ({ children }: { children: ReactNode }) => (
 );
 
 const ClientProvider = ({ children }: { children: ReactNode }) => {
-  const client = new QueryClient();
-
   const providers = [
-    { provider: QueryClientProvider, props: { client } },
     { provider: NoSSR, props: {} },
     { provider: BrowserRouter, props: {} },
     { provider: SnackbarProvider, props: {} },
