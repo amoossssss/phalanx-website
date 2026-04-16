@@ -42,6 +42,8 @@ const Bitmap = ({
     useState(false);
 
   const isFirstLeaderboardTypeRef = useRef(true);
+  const leaderboardDataAtTypeSwitchRef =
+    useRef<SquadLeaderboardResponseType | null>(null);
   const lastLayoutSizeRef = useRef({ w: 0, h: 0 });
   const resizeDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -78,16 +80,26 @@ const Bitmap = ({
   }, [leaderboardData, useTestTemplate, leaderboardType]);
 
   useEffect(() => {
+    if (useTestTemplate) return;
     if (isFirstLeaderboardTypeRef.current) {
       isFirstLeaderboardTypeRef.current = false;
       return;
     }
     setIsLeaderboardTypeInitializing(true);
-    const id = window.setTimeout(() => {
-      setIsLeaderboardTypeInitializing(false);
-    }, 600);
-    return () => window.clearTimeout(id);
+    leaderboardDataAtTypeSwitchRef.current = leaderboardData;
   }, [leaderboardType]);
+
+  useEffect(() => {
+    if (useTestTemplate) return;
+    if (!isLeaderboardTypeInitializing) return;
+    if (leaderboardData === null) return;
+
+    // Keep the initializing overlay up until *new* leaderboard data arrives
+    // (Home keeps the old data during the fetch).
+    if (leaderboardData !== leaderboardDataAtTypeSwitchRef.current) {
+      setIsLeaderboardTypeInitializing(false);
+    }
+  }, [isLeaderboardTypeInitializing, leaderboardData, useTestTemplate]);
 
   // 1. Size + position rectangles from points; re-run when the container size changes.
   // ResizeObserver debounce 500ms after the last size change; during debounce show overlay and no rectangles.

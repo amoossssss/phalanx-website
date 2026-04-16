@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import Bitmap from '@/components/Bitmap/Bitmap';
 import SquadLeaderboard from '@/components/SquadLeaderboard/SquadLeaderboard';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
@@ -10,7 +11,6 @@ import useWindowSize from '@/utils/hooks/useWindowSize';
 import { SquadLeaderboardResponseType } from '@/utils/api/instances/squad/service';
 
 import './Home.scss';
-import Bitmap from '@/components/Bitmap/Bitmap';
 
 const Home = () => {
   const { isWindowSmall } = useWindowSize();
