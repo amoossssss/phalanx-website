@@ -12,6 +12,7 @@ import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import ApiService from '@/utils/api/ApiService';
 import StringHelper from '@/utils/helpers/StringHelper';
 import useNotification from '@/utils/hooks/useNotification';
+import useWalletAuth from '@/utils/hooks/useWalletAuth';
 import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './ConnectWalletModule.scss';
@@ -35,6 +36,8 @@ const ConnectWalletModule = () => {
   const walletReauthRef = useRef(false);
 
   const displayAddress = StringHelper.truncateAddress(userAddress ?? '');
+  const { isActiveWalletSameAsSession, walletReadyForSigningMessage } =
+    useWalletAuth();
 
   const closeDropdown = useCallback(() => setIsDropdownOpen(false), []);
 
@@ -95,6 +98,12 @@ const ConnectWalletModule = () => {
     pendingSignInRef.current = true;
     setVisible(true);
   }, [connected, publicKey, runAuth, setVisible]);
+
+  const handleReconnectWallet = useCallback(() => {
+    closeDropdown();
+    pendingSignInRef.current = true;
+    setVisible(true);
+  }, [closeDropdown, setVisible]);
 
   useEffect(() => {
     if (!pendingSignInRef.current || !connected || !publicKey || isLogin) {
@@ -176,13 +185,36 @@ const ConnectWalletModule = () => {
         </ButtonDiv>
       ) : (
         <div className="logged-in-container" role="menuitem">
-          <ButtonDiv
-            className="connect-button"
-            onClick={() => setIsDropdownOpen((v) => !v)}
-          >
-            {displayAddress}
-          </ButtonDiv>
-          {isDropdownOpen && (
+          {!walletReadyForSigningMessage ? (
+            <ButtonDiv
+              className="connect-button"
+              onClick={handleReconnectWallet}
+              disabled={connectBusy}
+            >
+              {connectBusy ? 'Connecting…' : 'Reconnect'}
+            </ButtonDiv>
+          ) : (
+            <ButtonDiv
+              className="connect-button"
+              onClick={() => setIsDropdownOpen((v) => !v)}
+            >
+              {displayAddress}
+            </ButtonDiv>
+          )}
+
+          {walletReadyForSigningMessage && !isActiveWalletSameAsSession ? (
+            <div className="dropdown" role="menu">
+              <div className="dropdown-item" role="note">
+                {'Wallet mismatch.'}
+              </div>
+              <ButtonDiv className="dropdown-item" onClick={handleConnect}>
+                {'Re-verify'}
+              </ButtonDiv>
+              <ButtonDiv className="dropdown-item" onClick={handleLogout}>
+                {'Logout'}
+              </ButtonDiv>
+            </div>
+          ) : walletReadyForSigningMessage && isDropdownOpen ? (
             <div className="dropdown" role="menu">
               <ButtonDiv className="dropdown-item" onClick={handleUpdateAlias}>
                 {'Update_Alias'}
@@ -197,7 +229,7 @@ const ConnectWalletModule = () => {
                 {'Logout'}
               </ButtonDiv>
             </div>
-          )}
+          ) : null}
         </div>
       )}
 

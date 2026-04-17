@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 
 import UpdateLeverageDialog from '@/components/UpdateLeverageDialog/UpdateLeverageDialog';
 
@@ -15,6 +14,7 @@ import PositionHelper from '@/utils/helpers/PositionHelper';
 import StringHelper from '@/utils/helpers/StringHelper';
 import useNotification from '@/utils/hooks/useNotification';
 import useWindowSize from '@/utils/hooks/useWindowSize';
+import useWalletAuth from '@/utils/hooks/useWalletAuth';
 import { useAuth } from '@/utils/contexts/AuthContext';
 
 import './OrderPanel.scss';
@@ -57,7 +57,11 @@ const OrderPanel = ({
   onSubmit,
 }: OrderPanelProps) => {
   const { userAddress, isLogin } = useAuth();
-  const { signMessage } = useWallet();
+  const {
+    signMessage,
+    isActiveWalletSameAsSession,
+    walletReadyForSigningMessage,
+  } = useWalletAuth();
   const { snackbar } = useNotification();
   const { isWindowSmall } = useWindowSize();
 
@@ -173,6 +177,12 @@ const OrderPanel = ({
     return notionalUsd * feeRate;
   }, [feeRate, notionalUsd]);
 
+  const orderMarginUsd = useMemo(() => {
+    if (!notionalUsd || notionalUsd <= 0) return 0;
+    if (!Number.isFinite(leverage) || leverage <= 0) return 0;
+    return notionalUsd / leverage;
+  }, [leverage, notionalUsd]);
+
   const isTokenAmountValid = useMemo(() => {
     if (!tokenAmountNum || tokenAmountNum <= 0) return false;
     if (!lotSize || lotSize <= 0) return tokenAmountNum > 0;
@@ -185,6 +195,9 @@ const OrderPanel = ({
   }, [lotSize, tokenAmountNum]);
 
   const canSubmit = useMemo(() => {
+    if (!isLogin || !userAddress) return false;
+    if (!walletReadyForSigningMessage) return false;
+    if (!isActiveWalletSameAsSession) return false;
     if (!isTokenAmountValid) return false;
     if (orderType === 'limit') {
       if (!priceNum || priceNum <= 0) return false;
@@ -202,12 +215,16 @@ const OrderPanel = ({
   }, [
     availableBalance,
     feeEstimate,
+    isActiveWalletSameAsSession,
+    isLogin,
     isTokenAmountValid,
     leverage,
     maxReduceUsd,
     notionalUsd,
     orderType,
     priceNum,
+    userAddress,
+    walletReadyForSigningMessage,
   ]);
 
   useEffect(() => {
@@ -360,7 +377,11 @@ const OrderPanel = ({
 
   const applyMarginMode = useCallback(
     async (nextMode: MarginMode) => {
-      if (!isLogin || !userAddress || !signMessage || !market) return;
+      if (!isLogin || !userAddress || !market) return;
+      if (!walletReadyForSigningMessage) return;
+      if (!isActiveWalletSameAsSession) return;
+      const signer = signMessage;
+      if (!signer) return;
 
       setIsMarginModeUpdating(true);
       try {
@@ -368,7 +389,7 @@ const OrderPanel = ({
           account: userAddress,
           symbol: market,
           isIsolated: nextMode === 'isolated',
-          signMessage,
+          signMessage: signer,
         });
         setMarginMode(nextMode);
         snackbar.success('Margin mode updated successfully');
@@ -378,12 +399,20 @@ const OrderPanel = ({
         setIsMarginModeUpdating(false);
       }
     },
-    [isLogin, market, signMessage, userAddress],
+    [
+      isActiveWalletSameAsSession,
+      isLogin,
+      market,
+      signMessage,
+      userAddress,
+      walletReadyForSigningMessage,
+    ],
   );
 
   const handlePlaceOrder = async () => {
     if (!canSubmit) return;
-    if (!isLogin || !userAddress || !signMessage) {
+    const signer = signMessage;
+    if (!isLogin || !userAddress || !signer) {
       console.warn(
         'Cannot place market order: missing login, account, or signMessage',
       );
@@ -392,14 +421,6 @@ const OrderPanel = ({
 
     setIsOrderLoading(true);
     try {
-      // Pacifica margin mode is configured separately from order creation.
-      await PacificaHelper.updateMarginMode({
-        account: userAddress,
-        symbol: market,
-        isIsolated: marginMode === 'isolated',
-        signMessage,
-      });
-
       if (orderType === 'market') {
         if (tokenAmountNum && tokenAmountNum > 0) {
           await PacificaHelper.marketOrder({
@@ -410,7 +431,7 @@ const OrderPanel = ({
             slippagePercent: '0.5',
             reduceOnly,
             builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
-            signMessage,
+            signMessage: signer,
           });
           snackbar.success('Order placed successfully');
           setAmount('');
@@ -427,7 +448,7 @@ const OrderPanel = ({
             tif: 'GTC',
             reduceOnly,
             builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
-            signMessage,
+            signMessage: signer,
           });
           snackbar.success('Order placed successfully');
           setAmount('');
@@ -608,6 +629,17 @@ const OrderPanel = ({
           <span className="reduce-only-box" aria-hidden="true" />
         </span>
       </label>
+
+      <div className="row">
+        <div className="label">{'Order_margin'}</div>
+        <div className="value">
+          {orderMarginUsd > 0
+            ? orderMarginUsd.toLocaleString(undefined, {
+                maximumFractionDigits: 6,
+              })
+            : '—'}
+        </div>
+      </div>
 
       <div className="row">
         <div className="label">{'Est_fee'}</div>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
@@ -10,7 +9,7 @@ import PacificaHelper, {
 } from '@/utils/helpers/PacificaHelper';
 import PositionHelper from '@/utils/helpers/PositionHelper';
 import useNotification from '@/utils/hooks/useNotification';
-import { useAuth } from '@/utils/contexts/AuthContext';
+import useWalletAuth from '@/utils/hooks/useWalletAuth';
 
 import './ConfirmCancelOrderDialog.scss';
 
@@ -28,14 +27,23 @@ const ConfirmCancelOrderDialog = ({
   close,
   onCancelled,
 }: ConfirmCancelOrderDialogProps) => {
-  const { userAddress, isLogin } = useAuth();
-  const { signMessage } = useWallet();
+  const {
+    isLogin,
+    userAddress,
+    signMessage,
+    activeWalletAddress,
+    isActiveWalletSameAsSession,
+    walletReadyForSigningMessage,
+    openWalletModal,
+  } = useWalletAuth();
   const { snackbar } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
 
   const canSubmit = useMemo(() => {
     if (!order.symbol) return false;
-    if (!isLogin || !userAddress || !signMessage) return false;
+    if (!isLogin || !userAddress) return false;
+    if (!walletReadyForSigningMessage) return false;
+    if (!isActiveWalletSameAsSession) return false;
     if (
       order.orderId <= 0 &&
       !(order.clientOrderId && order.clientOrderId.length > 0)
@@ -43,7 +51,13 @@ const ConfirmCancelOrderDialog = ({
       return false;
     }
     return true;
-  }, [isLogin, order, signMessage, userAddress]);
+  }, [
+    isActiveWalletSameAsSession,
+    isLogin,
+    order,
+    userAddress,
+    walletReadyForSigningMessage,
+  ]);
 
   const handleConfirm = () => {
     if (!canSubmit) return;
@@ -72,6 +86,7 @@ const ConfirmCancelOrderDialog = ({
   };
 
   const sideLabel = PositionHelper.sideTag(order.side);
+  const handleReconnectWallet = () => openWalletModal();
 
   return (
     <dialog
@@ -83,6 +98,30 @@ const ConfirmCancelOrderDialog = ({
     >
       <div className="dialog-content">
         <div className="dialog-title">{'<Cancel_order>'}</div>
+
+        {!walletReadyForSigningMessage ? (
+          <div className="dialog-summary">
+            <div className="row">
+              <div className="value">{'Reconnect wallet to cancel order.'}</div>
+            </div>
+            <ButtonDiv
+              className="confirm-button"
+              onClick={handleReconnectWallet}
+              disabled={isLoading}
+            >
+              {'<Reconnect wallet>'}
+            </ButtonDiv>
+          </div>
+        ) : !isActiveWalletSameAsSession ? (
+          <div className="dialog-summary">
+            <div className="row">
+              <div className="label">{'Wallet'}</div>
+              <div className="value">
+                {`Connected wallet does not match session. Active: ${activeWalletAddress}`}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="dialog-summary">
           <div className="row">

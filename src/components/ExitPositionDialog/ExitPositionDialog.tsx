@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 
 import ButtonDiv from '@/lib/ButtonDiv/ButtonDiv';
 import withColoredSvg from '@/lib/ColoredSvg/ColoredSvg';
@@ -13,7 +12,7 @@ import PacificaHelper, {
 } from '@/utils/helpers/PacificaHelper';
 import PositionHelper from '@/utils/helpers/PositionHelper';
 import useNotification from '@/utils/hooks/useNotification';
-import { useAuth } from '@/utils/contexts/AuthContext';
+import useWalletAuth from '@/utils/hooks/useWalletAuth';
 
 import './ExitPositionDialog.scss';
 
@@ -42,8 +41,15 @@ const ExitPositionDialog = ({
   tickSize,
   onClosed,
 }: ExitPositionDialogProps) => {
-  const { userAddress, isLogin } = useAuth();
-  const { signMessage } = useWallet();
+  const {
+    isLogin,
+    userAddress,
+    signMessage,
+    activeWalletAddress,
+    isActiveWalletSameAsSession,
+    walletReadyForSigningMessage,
+    openWalletModal,
+  } = useWalletAuth();
   const { snackbar } = useNotification();
 
   const [mode, setMode] = useState<ExitMode>('market');
@@ -161,7 +167,9 @@ const ExitPositionDialog = ({
 
   const canSubmit = useMemo(() => {
     if (!position.symbol) return false;
-    if (!isLogin || !userAddress || !signMessage) return false;
+    if (!isLogin || !userAddress) return false;
+    if (!walletReadyForSigningMessage) return false;
+    if (!isActiveWalletSameAsSession) return false;
     if (!builderCode) return false;
     if (!closeAmountNum || closeAmountNum <= 0) return false;
     if (mode === 'limit') {
@@ -172,11 +180,12 @@ const ExitPositionDialog = ({
     builderCode,
     closeAmountNum,
     isLogin,
+    isActiveWalletSameAsSession,
     limitPriceSnapped,
     mode,
     position.symbol,
-    signMessage,
     userAddress,
+    walletReadyForSigningMessage,
   ]);
 
   const handleSubmit = () => {
@@ -212,6 +221,10 @@ const ExitPositionDialog = ({
       });
   };
 
+  const handleReconnectWallet = useCallback(() => {
+    openWalletModal();
+  }, [openWalletModal]);
+
   const pnlClass =
     estimatedPnlUsd === null
       ? ''
@@ -239,6 +252,36 @@ const ExitPositionDialog = ({
     >
       <div className="dialog-content">
         <div className="dialog-title">{`<${sideLabel}_${position.symbol}_Exit>`}</div>
+
+        {!walletReadyForSigningMessage ? (
+          <div className="section">
+            <div className="row">
+              <div className="value">
+                {'Reconnect wallet to close position.'}
+              </div>
+            </div>
+            <ButtonDiv
+              className="submit-button"
+              onClick={handleReconnectWallet}
+              disabled={isLoading}
+            >
+              {'<Reconnect wallet>'}
+            </ButtonDiv>
+          </div>
+        ) : !isActiveWalletSameAsSession ? (
+          <div className="section">
+            <div className="row">
+              <div className="label">{'Wallet'}</div>
+              <div className="value">
+                {`Connected wallet (${StringHelper.truncateAddress(
+                  activeWalletAddress,
+                )}) does not match session (${StringHelper.truncateAddress(
+                  userAddress,
+                )}).`}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="section">
           <div className="row">
