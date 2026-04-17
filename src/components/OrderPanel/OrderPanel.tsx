@@ -21,6 +21,7 @@ import './OrderPanel.scss';
 
 type OrderType = 'market' | 'limit';
 type OrderSide = 'buy' | 'sell';
+type MarginMode = 'cross' | 'isolated';
 
 type OrderPanelProps = {
   /** Current market symbol, e.g. 'BTC'. */
@@ -62,12 +63,14 @@ const OrderPanel = ({
 
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [side, setSide] = useState<OrderSide>('buy');
+  const [marginMode, setMarginMode] = useState<MarginMode>('cross');
   const [leverage, setLeverage] = useState(1);
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
   const [tokenAmount, setTokenAmount] = useState('');
   const [marketPrice, setMarketPrice] = useState<number | null>(null);
   const [isOrderLoading, setIsOrderLoading] = useState(false);
+  const [isMarginModeUpdating, setIsMarginModeUpdating] = useState(false);
   const [isLeverageDialogOpen, setIsLeverageDialogOpen] = useState(false);
   const [reduceOnly, setReduceOnly] = useState(false);
   const [positions, setPositions] = useState<PacificaPosition[]>([]);
@@ -234,6 +237,7 @@ const OrderPanel = ({
         const settings = await PacificaHelper.getAccountSettings({ account });
         if (cancelled) return;
         const row = settings.marginSettings.find((s) => s.symbol === market);
+        setMarginMode(row?.isolated ? 'isolated' : 'cross');
         // Docs: default leverage returns blank for that market; default is max.
         const next =
           row && Number.isFinite(row.leverage) && row.leverage > 0
@@ -354,7 +358,30 @@ const OrderPanel = ({
     reduceOnly,
   ]);
 
-  const handlePlaceOrder = () => {
+  const applyMarginMode = useCallback(
+    async (nextMode: MarginMode) => {
+      if (!isLogin || !userAddress || !signMessage || !market) return;
+
+      setIsMarginModeUpdating(true);
+      try {
+        await PacificaHelper.updateMarginMode({
+          account: userAddress,
+          symbol: market,
+          isIsolated: nextMode === 'isolated',
+          signMessage,
+        });
+        setMarginMode(nextMode);
+        snackbar.success('Margin mode updated successfully');
+      } catch (e) {
+        snackbar.error(e?.toString?.() ?? String(e));
+      } finally {
+        setIsMarginModeUpdating(false);
+      }
+    },
+    [isLogin, market, signMessage, userAddress],
+  );
+
+  const handlePlaceOrder = async () => {
     if (!canSubmit) return;
     if (!isLogin || !userAddress || !signMessage) {
       console.warn(
@@ -364,59 +391,55 @@ const OrderPanel = ({
     }
 
     setIsOrderLoading(true);
+    try {
+      // Pacifica margin mode is configured separately from order creation.
+      await PacificaHelper.updateMarginMode({
+        account: userAddress,
+        symbol: market,
+        isIsolated: marginMode === 'isolated',
+        signMessage,
+      });
 
-    if (orderType === 'market') {
-      if (tokenAmountNum && tokenAmountNum > 0) {
-        void PacificaHelper.marketOrder({
-          account: userAddress,
-          symbol: market,
-          side: side === 'buy' ? 'bid' : 'ask',
-          amount: String(tokenAmountNum),
-          slippagePercent: '0.5',
-          reduceOnly,
-          builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
-          signMessage,
-        })
-          .then(() => {
-            snackbar.success('Order placed successfully');
-            setAmount('');
-            setTokenAmount('');
-          })
-          .catch((e) => {
-            console.error('market order failed', e);
-            snackbar.error(e.toString());
-          })
-          .finally(() => {
-            setIsOrderLoading(false);
+      if (orderType === 'market') {
+        if (tokenAmountNum && tokenAmountNum > 0) {
+          await PacificaHelper.marketOrder({
+            account: userAddress,
+            symbol: market,
+            side: side === 'buy' ? 'bid' : 'ask',
+            amount: String(tokenAmountNum),
+            slippagePercent: '0.5',
+            reduceOnly,
+            builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
+            signMessage,
           });
-      }
-    } else if (orderType === 'limit') {
-      if (tokenAmountNum && tokenAmountNum > 0 && priceNum && priceNum > 0) {
-        void PacificaHelper.limitOrder({
-          account: userAddress,
-          symbol: market,
-          side: side === 'buy' ? 'bid' : 'ask',
-          price: priceNum,
-          amount: String(tokenAmountNum),
-          tif: 'GTC',
-          reduceOnly,
-          builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
-          signMessage,
-        })
-          .then(() => {
-            snackbar.success('Order placed successfully');
-            setAmount('');
-            setPrice('');
-            setTokenAmount('');
-          })
-          .catch((e) => {
-            console.error('limit order failed', e);
-            snackbar.error(e.toString());
-          })
-          .finally(() => {
-            setIsOrderLoading(false);
+          snackbar.success('Order placed successfully');
+          setAmount('');
+          setTokenAmount('');
+        }
+      } else if (orderType === 'limit') {
+        if (tokenAmountNum && tokenAmountNum > 0 && priceNum && priceNum > 0) {
+          await PacificaHelper.limitOrder({
+            account: userAddress,
+            symbol: market,
+            side: side === 'buy' ? 'bid' : 'ask',
+            price: priceNum,
+            amount: String(tokenAmountNum),
+            tif: 'GTC',
+            reduceOnly,
+            builderCode: EnvVariables.PACIFICA_BUILDER_CODE,
+            signMessage,
           });
+          snackbar.success('Order placed successfully');
+          setAmount('');
+          setPrice('');
+          setTokenAmount('');
+        }
       }
+    } catch (e) {
+      console.error('place order failed', e);
+      snackbar.error(e?.toString?.() ?? String(e));
+    } finally {
+      setIsOrderLoading(false);
     }
 
     onSubmit?.({
@@ -463,6 +486,27 @@ const OrderPanel = ({
           onUpdated={(next) => setLeverage(clamp(next, 1, maxLeverage))}
         />
       )}
+
+      <div className="margin-toggle">
+        <ButtonDiv
+          className={
+            marginMode === 'cross' ? 'margin-btn active' : 'margin-btn'
+          }
+          disabled={isOrderLoading || isMarginModeUpdating}
+          onClick={() => void applyMarginMode('cross')}
+        >
+          {'Cross'}
+        </ButtonDiv>
+        <ButtonDiv
+          className={
+            marginMode === 'isolated' ? 'margin-btn active' : 'margin-btn'
+          }
+          disabled={isOrderLoading || isMarginModeUpdating}
+          onClick={() => void applyMarginMode('isolated')}
+        >
+          {'Isolated'}
+        </ButtonDiv>
+      </div>
 
       <div className="side-toggle">
         <ButtonDiv
@@ -581,7 +625,7 @@ const OrderPanel = ({
           side === 'buy' ? 'buy' : 'sell'
         }`}
         disabled={!canSubmit || isOrderLoading}
-        onClick={handlePlaceOrder}
+        onClick={() => void handlePlaceOrder()}
       >
         {isOrderLoading ? '<Req_Signature>' : '<Place_Order>'}
       </ButtonDiv>

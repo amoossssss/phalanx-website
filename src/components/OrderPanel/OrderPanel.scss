@@ -60,6 +60,31 @@
     gap: 0.6rem;
   }
 
+  .margin-toggle {
+    @include row;
+    gap: 0.6rem;
+  }
+
+  .margin-btn {
+    @include font-12;
+    @include center-item;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid $color-primary-dark;
+    background: transparent;
+    color: $color-white-70-percent;
+    flex: 1;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+
+  .margin-btn.active {
+    border-color: $color-primary;
+    color: $color-primary;
+    background: rgba(143, 245, 255, 0.08);
+  }
+
   .side-btn {
     @include font-12;
     @include center-item;
